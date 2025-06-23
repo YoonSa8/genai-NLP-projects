@@ -1,6 +1,0 @@
-{
-    "MONGODB_URI": "mongodb+srv://myAtlasDBUser:Gogo02_Bts88@myatlasclusteredu.mcw6tdv.mongodb.net/",
-    "DB_NAME" : "chatbot",
-    "COLLECTION_NAME" : "Notes",
-    "INDEX_NAME" : "embedding_vector_index"
-}
