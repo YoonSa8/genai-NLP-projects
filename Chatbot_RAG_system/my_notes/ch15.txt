@@ -1,0 +1,217 @@
+ch15
+- Recurrent Neurons and Layers
+recurrent neural network looks very much like a
+feedforward neural network, except it also has connections pointing backward.
+You can easily create a layer of recurrent neurons. At each time step t, every neuron receives both the input vector x(t) and the output vector from the previous time step y(t–1),
+Each recurrent neuron has two sets of weights: one for the inputs x(t) and the other for the outputs of the previous time step, y(t–1).
+
+- Memory Cells
+Since the output of a recurrent neuron at time step t is a function of all the inputs from previous time steps, you could say it has a form of memory.
+A part of a neural network that preserves some state across time steps is called a memory cell
+
+- Input and Output Sequences
+An RNN can simultaneously take a sequence of inputs and produce a sequence of outputs This type of sequence-to-sequence network is useful for predicting time series
+
+you could feed the network a sequence of inputs and ignore all outputs
+except for the last one sequence-to-vector network
+
+you could feed the network the same input vector over and over again at
+each time step and let it output a sequence (vector-to-sequence network) 
+the input could be an image and the output could be a caption for that image.
+
+Lastly, you could have a sequence-to-vector network, called an encoder, followed by a vector-to-sequence network, called a decoder
+example, this could be used for translating a sentence from one language
+to another. You would feed the network a sentence in one language, the
+encoder would convert this sentence into a single vector representation, and then the decoder would decode this vector into a sentence in another language. This two-step model, called an Encoder–Decoder
+
+- Training RNNs 
+To train an RNN, the trick is to unroll it through time (like we just did) and then
+simply use regular backpropagation (see Figure 15-5). This strategy is called backpropagation
+through time (BPTT). 
+
+- Forecasting a Time Series
+single value per time step, so these are univariate time series
+multiple values per time step so it is a multivariate time series
+A typical task is to predict future values, which is called forecasting.
+to predict missing values from the past. This is called imputation
+
+- Baseline Metrics
+Before we start using RNNs, it is often a good idea to have a few baseline metrics, or else we may end up thinking our model works great when in fact it is doing worse than basic models.
+
+This is called naive forecasting, and it is sometimes surprisingly difficult to outperform.
+
+Another simple approach is to use a fully connected network. Since it expects a flat list of features for each input, we need to add a Flatten layer.
+
+- Implementing a Simple RNN
+We do not need to specify the length of the input sequences (unlike in the previous model), since a recurrent neural network can process any number of time steps
+
+- Deep RNNs
+Implementing a deep RNN with tf.keras is quite simple: just stack recurrent layers
+If you compile, fit, and evaluate this model, you will find that it reaches an MSE of
+0.003. We finally managed to beat the linear model!
+
+- Forecasting Several Time Steps Ahead
+The first option is to use the model we already trained, make it predict the next value,
+then add that value to the inputs (acting as if this predicted value had actually occurred),
+and use the model again to predict the following value, and so on,
+
+As you might expect, the prediction for the next step will usually be more accurate than the predictions for later time steps, since the errors might accumulate 
+
+The second option is to train an RNN to predict all 10 next values at once. We can still use a sequence-to-vector model, but it will output 10 values instead of 1. However,
+we first need to change the targets to be vectors containing the next 10 values
+
+we can train it to forecast the next 10 values at each and every time step. In other words, we can turn this sequence-to-vector RNN into a sequence-to-sequence RNN. The advantage of this technique is that the loss will contain a term for the output of the RNN at each and every time step, not just the output at the last time step. This means there will be many more error gradients flowing through the model, and they won’t have to flow only through time; they will also flow from the output of each time step. This will both stabilize and speed up training.
+
+
+- Handling Long Sequences
+Fighting the Unstable Gradients Problem
+good parameter initialization, faster optimizers, dropout, and so on. However, nonsaturating activation functions (e.g., ReLU) may not help as much here; in fact, they may actually lead the RNN to be even more unstable during training
+Because the same weights are used
+at every time step, the outputs at the second time step may also be slightly increased, and those at the third, and so on until the outputs explode—and a nonsaturating activation function does not prevent that. You can reduce this risk by using a smaller learning rate, but you can also simply use saturating activation function like the hyperbolic tangent -tanh- 
+In much the same way, the
+gradients themselves can explode. If you notice that training is unstable, you may want to monitor the size of the gradients (e.g., using TensorBoard) and perhaps use Gradient Clipping.
+
+Batch Normalization cannot be used as efficiently with RNNs
+
+Another form of normalization often works better with RNNs: Layer Normalization.
+This idea was introduced by Jimmy Lei Ba et al. in a 2016 paper:4 it is very similar to
+Batch Normalization, but instead of normalizing across the batch dimension, it normalizes
+across the features dimension. One advantage is that it can compute the
+required statistics on the fly, at each time step, independently for each instance. This
+also means that it behaves the same way during training and testing (as opposed to
+BN), and it does not need to use exponential moving averages to estimate the feature
+statistics across all instances in the training set
+
+With these techniques, you can alleviate the unstable gradients problem and train an RNN much more efficiently. Now let’s look at how to deal with the short-term memory problem.
+
+- Tackling the Short-Term Memory Problem
+after a while, the RNN’s state contains virtually no trace of the first inputs. This can be a showstopper
+To tackle this problem, various types of cells with long-term
+memory have been introduced.
+
+LSTM cells
+The Long Short-Term Memory (LSTM) cell was
+LSTM cell as a black box, it can be used very much like a basic cell, except it will perform much better; training will converge faster, and it will detect long-term dependencies in the data.
+
+If you don’t look at what’s inside the box, the LSTM cell looks exactly like a regular cell, except that its state is split into two vectors: h(t) and c(t) (“c” stands for “cell”). You can think of h(t) as the short-term state and c(t) as the long-term state
+
+Now let’s open the box! The key idea is that the network can learn what to store in the long-term state, what to throw away, and what to read from it. As the long-term state c(t–1) traverses the network from left to right, you can see that it first goes through a forget gate, dropping some memories, and then it adds some new memories via the addition operation (which adds the memories that were selected by an input gate). The result c(t) is sent straight out, without any further transformation. So, at each time step, some memories are dropped and some memories are added. Moreover, after the addition operation, the long-term state is copied and passed through the tanh function, and then the result is filtered by the output gate. This produces the short-term state h(t) (which is equal to the cell’s output for this time step, y(t)).
+
+—The forget gate (controlled by f(t)) controls which parts of the long-term state should be erased.
+—The input gate (controlled by i(t)) controls which parts of g(t) should be added to the long-term state.
+—Finally, the output gate (controlled by o(t)) controls which parts of the longterm state should be read and output at this time step, both to h(t) and to y(t).
+In short, an LSTM cell can learn to recognize an important input (that’s the role of the input gate), store it in the long-term state, preserve it for as long as it is needed (that’s the role of the forget gate), and extract it whenever it is needed. This explains why these cells have been amazingly successful at capturing long-term patterns in time series, long texts, audio recordings, and more.
+
+GRU cells
+The GRU cell is a simplified version of the LSTM cell,
+• Both state vectors are merged into a single vector h(t).
+• A single gate controller z(t) controls both the forget gate and the input gate.
+• There is no output gate; the full state vector is output at every time step. However, there is a new gate controller r(t) that controls which part of the previous state will be shown to the main layer (g(t)).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

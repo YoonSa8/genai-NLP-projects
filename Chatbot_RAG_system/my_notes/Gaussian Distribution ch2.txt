@@ -1,0 +1,148 @@
+Gaussian Distribution 
+- normal distribution 
+- the distribution that maximizes the entropy is the Gaussian
+	entropy as a measure of "spread" or "uncertainty." The Gaussian distribution is the smoothest and least structured way to allocate 	probability given fixed mean and variance. It is like saying, "If I know only the average value and how much values deviate from it, 	the most unbiased assumption is that the data follows a bell-shaped curve."
+	
+	This is akin to finding the "least biased" distribution given the known constraints.
+	The result means that, under the given constraints, the Gaussian distribution is the "most random" or "least informative" 	distribution, making it the one with the highest entropy.
+-geometrical form- 
+- The Gaussian distribution is shaped by its mean and variance (or covariance in higher dimensions).
+- In 1D, it forms a bell curve; in 2D, it forms a bell-shaped surface with elliptical contours; in 
+	n-dimensions, it forms an n-dimensional "bell."
+- The shape reflects uncertainty: wider regions of the curve/surface correspond to higher variability.
+-limitation of Gaussian-
+- the Gaussian cannot capture asymmetry in data and may fail to model distributions with significant skewness.
+- When outliers are present, the mean and variance (parameters of the Gaussian) are heavily affected, leading to poor model performance
+- It cannot model heavy-tailed distributions (e.g., those seen in financial data where extreme events are common), leading to underestimation of the probability of extreme events.
+- The Gaussian is fully described by only two parameters: mean 𝜇 and variance 𝜎2 It lacks flexibility to model more complex data shapes.
+- It cannot model discrete or categorical data directly
+
+2.3.1 Conditional Gaussian Distributions
+If a vector x follows a multivariate Gaussian distribution, its conditional distribution (given a subset of variables) is also Gaussian.
+X=(X1,X2) follows a joint Gaussian distribution
+- his formula gives the mean of X1 conditional on 𝑥2=x2 It is a linear combination of the mean of𝑋1 and the difference between the observed 𝑥2 and the mean of X2.
+- This gives the variance of 𝑋1 given 𝑋2 . It depends on the variance of 𝑋1the covariance between 𝑋1and 𝑋2, and the variance of x2
+- The conditional Gaussian distribution describes how one variable is distributed when we know something about another related variable.
+- This conditional distribution is still Gaussian, meaning the "shape" of the distribution does not change, only the location and spread are modified by the conditioning variable.
+
+2.3.2 Marginal Gaussian Distributions
+If a joint Gaussian distribution p(xa,xb) exists, the marginal distribution p(xa) is also Gaussian
+Marginal Gaussian distributions refer to the distribution of a subset of variables in a multivariate Gaussian distribution. By marginalizing over the other variables (integrating them out), the resulting marginal distribution will also be Gaussian, with a mean and covariance derived from the original multivariate distribution. 
+
+2.3.3 Bayes’ Theorem for Gaussian Variables
+Bayes' Theorem is a fundamental concept in probability theory that describes how to update the probability of a hypothesis based on new evidence
+When combining Gaussian priors with Gaussian likelihoods, the posterior is also Gaussian.
+- The likelihood function models how probable the observed data is
+- The prior distribution represents our belief about the parameters before observing the data.
+Gaussian Prior x Gaussian Likelihood → Gaussian Posterior: When combining a Gaussian prior with a Gaussian likelihood, the resulting posterior distribution is also Gaussian.
+Posterior Mean: The posterior mean is a weighted average of the prior mean and the data (observation), with weights inversely proportional to the variances (or precisions).
+Posterior Variance: The posterior variance is smaller than both the prior variance and the likelihood variance, reflecting the fact that observing the data reduces uncertainty.
+
+2.3.4 Maximum Likelihood for the Gaussian
+Given a dataset{x 1,x2,…,xn} of n independent and identically distributed (i.i.d.) observations, the likelihood function L(μ,σ2) is the joint probability of observing all the data points under the assumption that each data point follows the Gaussian distribution
+
+
+2.3.5 Sequential Estimation -time- 
+Sequential estimation is a powerful technique that allows for the continuous estimation of parameters, such as the mean and variance, as new data becomes available. When the data is assumed to follow a Gaussian distribution, sequential estimation methods, like the Kalman filter and Welford’s method, allow for efficient and real-time updates of these parameters. The Gaussian distribution's properties, especially the closed-form expressions for updating the mean and variance, make it an ideal candidate for sequential estimation in many applications.
+
+
+2.3.6 Bayesian Inference for the Gaussian
+Bayesian inference treats the parameters themselves as random variables, allowing for the inclusion of uncertainty in the model. This is particularly useful when you have prior information or belief about the distribution of the parameters before observing the data.
+Steps in Bayesian Inference for Gaussian Distribution
+
+1-Prior Assumptions: You start with a prior belief about the mean 𝜇 and variance 𝜎2 which could be based on historical data or domain knowledge.
+
+2-Update with Data: As new data points 𝑥1,x2,..,𝑥𝑛 are observed, the likelihood function is updated, and the prior is combined with the likelihood to produce the posterior distribution.
+
+3- Posterior Distribution: The posterior distribution reflects the updated belief about the parameters after observing the data. This distribution can then be used to make inferences about the parameters, such as calculating the posterior mean and posterior variance for 𝜇 and 𝜎2
+
+Bayesian inference for Gaussian distributions is a robust approach for estimating the parameters of a Gaussian distribution while incorporating prior beliefs and observed data. It provides not only point estimates but also uncertainty around those estimates through the posterior distribution. This makes it particularly powerful when dealing with real-world data where uncertainty is intrinsic, and prior knowledge can be useful in refining the estimates.
+
+
+2.3.7 Student’s t-Distribution
+The Student's t-distribution is a probability distribution that arises when estimating the mean of a normally distributed population with a small sample size and unknown population standard deviation.
+- shape 
+	The t-distribution is similar to the standard normal (Gaussian) distribution, but it has heavier tails. This means that extreme values (outliers) are more likely to occur compared to a normal distribution
+	with larger sample sizes, the estimation of the population variance becomes more accurate.
+- mean 
+	The mean of the t-distribution is 0, assuming the underlying population is normally distributed.
+- variance 
+	The variance of the t-distribution is 
+𝑑𝑓
+−
+df−2,
+	which is larger than 1 for degrees of freedom greater than 2. As the degrees of freedom increase, the variance 	approaches 1, the same as the standard normal distribution.
+
+- The Student's t-distribution can be seen as a generalization of the normal distribution in the sense that it becomes normal as the sample size grows. 
+- The t-distribution is widely used in hypothesis testing, confidence intervals, and robust regression analysis.
+
+2.3.8 Periodic Variables
+Problem:
+	Gaussian distributions cannot model periodic data (e.g., angles, time of day).
+	Periodic variables require special treatment to ensure periodicity.
+In cases where a variable exhibits periodic behavior, the covariance function (or kernel) used in the Gaussian process can include a periodic component. For example, a periodic kernel such as the Rational Quadratic kernel or Periodic kernel is used to model periodic variations in the data.
+
+2.3.9 Mixtures of Gaussians
+Combines multiple Gaussian distributions to capture complex data structures.
+mixture model is a probabilistic model that assumes the data is generated from a combination of several distributions. For periodic variables, a Gaussian mixture model (GMM) could be extended to model periodic behavior by using multiple Gaussian components that capture the periodic structure of the data.
+
+
+2.4: The Exponential Family
+The exponential family is a broad class of probability distributions that is fundamental in statistics and machine learning. These distributions are highly structured, making them computationally convenient for both theoretical and practical purposes.
+
+Key Properties of the Exponential Family:
+η: the natural (canonical) parameter.T(x): sufficient statistics of the data.
+A(η): log-partition function ensuring normalization.
+h(x): base measure independent of η
+The exponential family simplifies Bayesian inference, as it often leads to conjugate priors.
+Sufficient statistics reduce data to fixed dimensions, independent of the sample size.
+Applications:
+The exponential family underpins many statistical models, including generalized linear models (GLMs) and graphical models.
+
+2.4.1 Maximum Likelihood and Sufficient Statistics
+Sufficient Statistics:
+Definition: Functions T(x) that summarize data without losing information about 𝜂
+The MLE depends solely on the sufficient statistics, reducing computational complexity.
+For large N , the log-likelihood is dominated by A(η)
+
+2.4.2 Conjugate Priors
+A prior p(η) is conjugate to the likelihood if the posterior p(η∣x) has the same functional form as (η).
+Posterior updates are straightforward
+Simplifies Bayesian inference.
+
+
+2.4.3 Noninformative Priors
+Definition:
+A noninformative prior is chosen to have minimal influence on the posterior, representing ignorance about the parameters.
+Common in hypothesis testing and where prior knowledge is unavailable.
+
+
+2.5 Nonparametric Methods (for small data)
+Nonparametric methods provide a flexible framework for estimating probability distributions and modeling data without assuming a specific parametric form (e.g., Gaussian or exponential). These methods adapt to the complexity of the data
+They estimate the density or predictive function directly from the data.
+Nonparametric methods are particularly useful in cases where prior knowledge about the data distribution is limited.
+
+2.5.1 Kernel Density Estimators (KDE)
+
+K(u): Kernel function, which is symmetric and integrates to 1.
+Gaussian , Epanechnikov
+The choice of kernel influences the estimator’s smoothness but has less impact than the bandwidth.
+h: Bandwidth (smoothing parameter), controlling the kernel's width
+Critical Role:
+Small : Captures fine details but may lead to overfitting.
+Large h: Smooths the data excessively, risking underfitting.
+Smoothness:
+KDE produces a continuous and differentiable density function.
+Convergence: 
+As N→∞, KDE converges to the true density function.
+
+2.5.2 Nearest-Neighbor Methods
+Nearest-neighbor (NN) methods use the proximity of data points to make predictions or estimate density. They are intuitive and straightforward, relying on the assumption that nearby points in the feature space share similar properties.
+Comparison of KDE and NN Methods:
+KDE:
+Produces a continuous density estimate.
+Relies on bandwidth ℎ, which is fixed across the dataset.
+NN:
+Provides density estimates based on local neighborhood sizes.
+Adaptable to local data structures but computationally intensive.
+Both methods are complementary, and their choice depends on the dataset characteristics and the application requirements.

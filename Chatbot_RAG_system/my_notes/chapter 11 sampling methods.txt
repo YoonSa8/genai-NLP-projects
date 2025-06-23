@@ -1,0 +1,389 @@
+chapter 11 sampling methods
+sampling method involves selecting a subset of individuals or observations from a larger population to collect data and make inferences about the entire population
+
+11.1.1 Standard Distributions (Transformation Method)
+Generate samples from a known distribution p(y) using uniform samples.
+Generate a random number z∼Uniform(0,1)
+You want to generate random samples from a probability distribution p(y).
+But instead of directly sampling from p(y), you use uniform random numbers between 0 and 1 and transform them to follow the desired distribution.
+
+This is called the inverse transform sampling method.
+step by step explanation
+1-Generate a random number z from a uniform distribution between 0 and 1.
+2- Use the CDF of your target distribution  𝐹(𝑦)=∫𝑝(𝑦′)𝑑𝑦′
+tells you the probability that a sample is less than or equal to y.
+This function maps a value of 𝑦 to a value between 0 and 1.
+*we use cdf because we can't compute the pdf in one point 
+3- Step 3: Invert the CDF
+Now you do the reverse: you have a value z∈(0,1), and you want to find the value of 
+𝑦 such that: F(y)=z Compute y=F−1(z)
+This gives you a value 𝑦 such that a random sample from p(y) would have had a cumulative probability of 𝑧
+4- Step 4: Output y∼p(y).
+The value 𝑦 you get is distributed according to p(y).
+By repeating this process, you can generate as many samples from p(y) as you need.
+
+ Pros:
+Exact samples.
+Simple and fast for standard distributions.
+❌ Cons:
+Requires invertible CDF F ^−1, which may not exist or be tractable.
+
+2. Rejection Sampling
+The rejection sampling framework allows us to sample from relatively complex
+distributions, subject to certain constraints. We begin by considering univariate distributions
+and discuss the extension to multiple dimensions subsequently.
+Suppose we wish to sample from a distribution p(z) that is not one of the simple,
+standard distributions considered so far, and that sampling directly from p(z) is difficult.
+Furthermore suppose, as is often the case, that we are easily able to evaluate
+p(z) for any given value of z, up to some normalizing constant Z, so that
+p(z) =1/Z p'(z) 
+where p(z) can readily be evaluated, but Zp is unknown.
+In order to apply rejection sampling, we need some simpler distribution q(z),
+sometimes called a proposal distribution, from which we can readily draw samples.
+next introduce a constant k whose value is chosen such that kq(z)  p(z) for
+all values of z. The function kq(z) is called the comparison function and is illustrated
+for a univariate distribution in Figure 11.4. Each step of the rejection sampler
+involves generating two random numbers. First, we generate a number z0 from the
+distribution q(z). Next, we generate a number u0 from the uniform distribution over
+[0, kq(z0)]. This pair of random numbers has uniform distribution under the curve
+of the function kq(z). Finally, if u0 > p(z0) then the sample is rejected, otherwise
+u0 is retained.
+
+
+11.1.3 Adaptive rejection sampling
+In many instances where we might wish to apply rejection sampling, it proves
+difficult to determine a suitable analytic form for the envelope distribution q(z). An
+alternative approach is to construct the envelope function on the fly based on measured
+values of the distribution p(z) (Gilks and Wild, 1992). Construction of an
+envelope function is particularly straightforward for cases in which p(z) is log concave,
+in other words when ln p(z) has derivatives that are nonincreasing functions
+of z.
+
+The function ln p(z) and its gradient are evaluated at some initial set of grid
+points, and the intersections of the resulting tangent lines are used to construct the
+envelope function. Next a sample value is drawn from the envelope distribution.
+This is straightforward because the log of the envelope distribution is a succession
+of linear functions, and hence the envelope distribution itself comprises a piecewise
+exponential distribution of the form
+q(z) = kiλi exp {−λi(z − zi−1)} zi−1 < z  zi.
+
+Once a sample has been drawn, the usual rejection criterion can be applied. If the
+sample is accepted, then it will be a draw from the desired distribution. If, however,
+the sample is rejected, then it is incorporated into the set of grid points, a new tangent
+line is computed, and the envelope function is thereby refined. As the number of
+grid points increases, so the envelope function becomes a better approximation of
+the desired distribution p(z) and the probability of rejection decreases
+
+11.1.4 Importance sampling
+importance sampling provides a framework for approximating expectations directly
+but does not itself provide a mechanism for drawing samples from distribution
+p(z).
+The finite sum approximation to the expectation, given by (11.2), depends on
+being able to draw samples from the distribution p(z). Suppose, however, that it is
+impractical to sample directly from p(z) but that we can evaluate p(z) easily for any
+given value of z.
+
+Importance sampling is a clever trick to estimate expectations (averages) with respect to a complex probability distribution p(z), without needing to sample directly from it.
+in simple words "If I accidentally sampled 𝑧 from q(z), how much should I adjust (weight) this sample to make it represent what I would have gotten from p(z)?"
+
+11.1.5 Sampling-importance-resampling
+The rejection sampling method discussed in Section 11.1.2 depends in part for
+its success on the determination of a suitable value for the constant k. For many
+pairs of distributions p(z) and q(z), it will be impractical to determine a suitable
+
+value for k in that any value that is sufficiently large to guarantee a bound on the
+desired distribution will lead to impractically small acceptance rates.
+As in the case of rejection sampling, the sampling-importance-resampling (SIR)
+approach also makes use of a sampling distribution q(z) but avoids having to determine
+the constant k. There are two stages to the scheme. In the first stage,
+L samples z(1), . . . , z(L) are drawn from q(z). Then in the second stage, weights
+w1, . . . , wL are constructed using (11.23). Finally, a second set of L samples is
+drawn from the discrete distribution (z(1), . . . , z(L)) with probabilities given by the
+weights (w1, . . . , wL).
+The resulting L samples are only approximately distributed according to p(z),
+but the distribution becomes correct in the limit L → ∞.
+in another words a useful algorithm that builds on importance sampling but outputs samples that approximate your target distribution p(z, Turn weighted samples from importance sampling into unweighted samples approximately from p(z).
+SIR = Importance Sampling + Resampling
+
+11.1.6 Sampling and the EM algorithm
+sampling methods can be used to approximate the E step of the EM algorithm for models in which the E step cannot be performed analytically. Consider a model with hidden variables
+Z, visible (observed) variables X, and parameters θ. The function that is optimized
+with respect to θ in the M step is the expected complete-data log likelihood,
+
+particular instance of the Monte Carlo EM algorithm, called stochastic EM,
+arises if we consider a finite mixture model, and draw just one sample at each E step.
+Here the latent variable Z characterizes which of the K components of the mixture
+is responsible for generating each data point. In the E step, a sample of Z is taken
+from the posterior distribution p(Z|X, θold) where X is the data set. This effectively
+makes a hard assignment of each data point to one of the components in the mixture.
+In the M step, this sampled approximation to the posterior distribution is used to
+update the model parameters in the usual way.
+
+
+11.2 – Markov Chain Monte Carlo (MCMC)
+To sample from complex, high-dimensional distributions (like posteriors) where other methods (rejection, importance sampling) fail due to inefficiency.
+Construct a Markov chain whose stationary (long-term) distribution is p(z), and generate samples by running the chain.
+	We no longer require samples to be independent.
+	Over time, the chain will generate samples from the correct target distribution.
+Use a proposal distribution q(z ′∣z^(τ)) that suggests the next sample based on the current one. This forms a Markov chain, where each sample depends only on the previous one.
+
+11.2.1 – Markov Chains
+🔹 Definitions:
+A Markov chain is a sequence  where each z^(t+1)
+  depends only on z(t) .
+Defined by transition probabilities T(z'∣z).
+🔹 Invariant (Stationary) Distribution:
+A distribution p*(z) is invariant if:p *(z′)= ∑T(z′∣z)⋅p*(z)
+
+🔹 Ergodicity:
+The chain converges to the stationary distribution regardless of the starting point.
+Requires the chain to be irreducible (can reach any state) and aperiodic.
+
+11.2.2 – The Metropolis-Hastings Algorithm
+🔹 Generalization of Metropolis Algorithm:
+Designed to work with asymmetric proposal distributions q(z ′∣z).
+🔹 Algorithm Steps:
+Given current state 𝑧, propose z'∼q(z′∣z).
+Accept 𝑧′ with probability: 𝐴(𝑧′,𝑧)=min(1,𝑝(𝑧′)𝑞(𝑧∣𝑧')/𝑝(𝑧)𝑞(𝑧′∣𝑧))
+(Only requires unnormalized p(z))
+If accepted: z^(τ+1)=z′
+If rejected: 𝑧^(τ+1)=z
+
+Ensures that the target distribution p(z) is invariant.
+Satisfies detailed balance.
+Works even if 𝑍𝑝(normalizing constant) is unknown
+
+Concept	Description
+MCMC	Uses Markov chains to sample from complex distributions.
+Markov Chain	Sequence where each sample depends only on the previous one.
+Stationary Distribution	The long-run distribution the chain converges to.
+Detailed Balance	Strong condition ensuring stationarity.
+Metropolis-Hastings	MCMC method that handles asymmetric proposals and works with unnormalized distributions.
+
+
+11.3 – Gibbs Sampling
+Gibbs sampling is a Markov Chain Monte Carlo (MCMC) algorithm that generates samples from a complex joint distribution 𝑝(𝑧1,…,𝑧𝑀) by sampling each variable one at a time, conditioned on the others.
+
+You update z1 using the old values of all other variables.
+For 𝑧2, you use the new value of 𝑧1, but still the old values for the rest.
+And so on, until you’ve updated all 𝑀 variables.
+This process is repeated for many iterations, and the sequence of z's converges to samples from the joint distribution p(z).
+
+11.4 – Slice Sampling
+Generate samples from a distribution p(z) without requiring a step size (like Metropolis-Hastings) or knowledge of full conditional distributions (like Gibbs).
+Instead of sampling directly from p(z), slice sampling introduces an auxiliary variable 𝑢 and samples uniformly from the area under the curve of p'(z), the unnormalized distribution.
+It transforms the 1D problem into sampling uniformly from a region in 2D space.
+
+
+11.5 – Hybrid Monte Carlo (HMC)
+Traditional MCMC methods (like Metropolis-Hastings and Gibbs sampling) struggle in high dimensions or when the target distribution is highly correlated. Their main weakness is the random walk behavior, which leads to slow exploration of the distribution.
+
+HMC fixes this by simulating physical dynamics that move smoothly through high-probability regions of the space
+
+HMC introduces auxiliary momentum variables and simulates Hamiltonian dynamics (from physics) to propose new samples. These dynamics use gradients of the log-probability to guide movement, allowing large, efficient jumps that reduce random walk behavior.
+
+11.5.1 – Hamiltonian Dynamics
+We want to simulate dynamics governed by Hamilton’s equations:
+The first equation tells us how the position 𝑧𝑖 changes over time: it follows the momentum.
+The second equation updates the momentum 𝑟𝑖: it’s pulled by the negative gradient of the potential energy, or equivalently the gradient of the log-probability.
+
+This system conserves total energy H(z,r), and so if simulated accurately, we move through the space without rejecting proposals.
+
+But we can’t simulate these equations exactly, so we approximate them using a numerical integration method.
+A popular integrator that preserves energy reasonably well is the leapfrog method.
+It works as follows (for time step ϵ):
+1- Half-step momentum update:
+2- Full-step position update:
+3- Another half-step momentum update
+The leapfrog steps maintain reversibility and volume preservation, which are needed for valid MCMC sampling.
+
+11.5.2 – Hybrid Monte Carlo Algorithm
+Now we combine Hamiltonian dynamics with the Metropolis accept/reject step to correct for discretization error.
+HMC Algorithm (Full Steps)
+Given the current sample 𝑧:
+Sample momentum: r∼N(0,M)
+Simulate dynamics: Use the leapfrog method to simulate the trajectory (z,r)→(z′,r′) for L steps of size 𝜖.
+Accept/reject step: Accept 𝑧′ with probability: A=min(1,exp(−H(z′,r′)+H(z,r)))
+This corrects any error introduced by leapfrog (since 𝐻 isn’t perfectly conserved).
+If accepted: z^(τ+1)=z′; else: stay at z^(τ)
+  Why HMC Works Well
+The dynamics guide proposals using the gradient of the log-probability.
+Proposals move along smooth trajectories — no random walk!
+Efficiently explores correlated, high-dimensional spaces.
+Tuning Parameters
+𝜖 (step size): too big → energy error → low acceptance rate. Too small → high computation cost.
+𝐿 (number of leapfrog steps): too small → short moves. Too big → loops back and wastes effort.
+𝑀 (mass matrix): can be tuned to match the shape of the distribution (like preconditioning in optimization).
+
+ 11.6 – Estimating the Partition Function
+As we have seen, most of the sampling algorithms considered in this chapter require
+only the functional form of the probability distribution up to a multiplicative
+constant. 1/ZG exp (−G(z)) =∑T(z(l), z) the value of the normalization constant ZE, also known as the partition function, is not needed in order to draw samples from p(z). However, knowledge of the value of ZE can be useful for Bayesian model comparison since it represents the model evidence (i.e., the probability of the observed data given the model), and so it is of interest to consider how its value might be obtained. We assume that direct
+evaluation by summing, or integrating, the function exp(−E(z)) over the state space
+of z is intractable.
+For model comparison, it is actually the ratio of the partition functions for two
+models that is required. Multiplication of this ratio by the ratio of prior probabilities
+gives the ratio of posterior probabilities, which can then be used for model selection
+or model averaging.
+
+11.1 – Basic Sampling Algorithms
+Transformation method: Turning uniform samples into samples from other distributions.
+
+Rejection sampling: Simple but inefficient in high dimensions.
+
+Importance sampling: Useful when you can't sample from the target distribution directly.
+
+SIR (Sampling Importance Resampling): Combines importance sampling with resampling.
+
+Monte Carlo EM: Uses sampling in EM when the E-step is intractable.
+
+11.2 – Markov Chain Monte Carlo (MCMC)
+Concept: Generates dependent samples from complex distributions via Markov chains.
+
+Metropolis-Hastings:
+
+Accept/reject based on a ratio.
+
+Works with asymmetric proposals.
+
+Ergodicity & detailed balance: Guarantees convergence to the target distribution.
+
+11.3 – Gibbs Sampling
+Special case of M-H where updates are from full conditional distributions.
+
+Efficient if conditional distributions are known and easy to sample.
+
+11.4 – Slice Sampling
+Adapts step size dynamically.
+
+Uses auxiliary variable to sample uniformly under the distribution curve.
+
+11.5 – Hybrid Monte Carlo (a.k.a. Hamiltonian Monte Carlo)
+Simulates physical dynamics to avoid random walk behavior.
+
+Efficient in high-dimensional continuous spaces using gradient information.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,279 @@
+ch14 
+- The Architecture of the Visual Cortex
+they showed that many neurons in
+the visual cortex have a small local receptive field, meaning they react only to visual stimuli located in a limited region of the visual field This powerful architecture is able to detect all sorts of complex patterns in any area of the visual field
+
+These studies of the visual cortex inspired the neocognitron,4 introduced in 1980, which gradually evolved into what we now call convolutional neural networks
+
+- Convolutional Layers
+This architecture allows the network to concentrate on small low-level features in the first hidden layer, then assemble them into larger higher-level features in the next hidden layer, and so on.
+
+In order for a layer to have the same height and width as the previous layer, it is common
+to add zeros around the inputs, as shown in the diagram. This is called zero padding.
+
+- Filters
+A neuron’s weights can be represented as a small image the size of the receptive field called filters 
+vertical line filter and horizontal line filter; 
+Thus, a layer full of neurons using the same filter outputs a feature map, which highlights the areas in an image that activate the filter the most.
+
+- Stacking Multiple Feature Maps
+in reality a convolutional layer has multiple filters and outputs one feature map per filter, so it is more accurately represented in
+3D 
+
+Input images are also composed of multiple sublayers: one per color channel. There are typically three: red, green, and blue (RGB). Grayscale images have just one channel 
+- Memory Requirements
+Another problem with CNNs is that the convolutional layers require a huge amount of RAM. This is especially true during training, because the reverse pass of backpropagation requires all the intermediate values computed during the forward pass.
+
+- Pooling Layers
+Their goal is to subsample (i.e., shrink) the input image reduce the computational load
+Just like in convolutional layers, each neuron in a pooling layer is connected to the
+outputs of a limited number of neurons in the previous layer, located within a small
+rectangular receptive field. You must define its size, the stride, and the padding type,
+just like before. However, a pooling neuron has no weights; all it does is aggregate the
+inputs using an aggregation function such as the max or mean.
+
+- CNN Architectures
+Typical CNN architectures stack a few convolutional layers (each one generally followed
+by a ReLU layer), then a pooling layer, then another few convolutional layers
+(+ReLU), then another pooling layer, and so on. The image gets smaller and smaller
+as it progresses through the network, but it also typically gets deeper and deeper (i.e.,
+with more feature maps), thanks to the convolutional layers (see Figure 14-11). At the
+top of the stack, a regular feedforward neural network is added, composed of a few fully connected layers (+ReLUs), and the final layer outputs the prediction (e.g., a
+softmax layer that outputs estimated class probabilities).
+
+- LeNet-5 architecture
+input - conv - pool - conv - avg pool - conv - fc - fc
+
+- AlexNet 
+input - conv - max pool - conv - conv - conv - max pool - fc -fc -fc
+ 
+- GoogLeNet
+input - conv- max pool - norm - conv - norm - max pool - max pool - avg pool - drop out - fc - SoftMax
+
+- Classification and Localization
+Localizing an object in a picture can be expressed as a regression task,to predict a bounding box around the object, a common approach is to predict the horizontal and vertical coordinates of the object’s center, as well as its height and width. This means we have four numbers to predict. It does not require much change to the model; we just need to add a second dense output layer with four units (typically on top of the global average pooling layer), and it can be trained using the MSE loss
+
+- Transfer Learning
+Leveraging Pretrained Models: Transfer learning involves using a pre-trained model (e.g., ResNet-50) that has already learned to detect features from a large dataset like ImageNet. The images need to be resized to the model's expected input size (e.g., 224x224 pixels for ResNet-50) and preprocessed appropriately.
+
+Fine-tuning: Typically, the weights of the pre-trained layers are initially frozen to prevent damaging the learned features. After training the top layers, all layers can be unfrozen, and the model is trained further with a much lower learning rate. This process allows for achieving high accuracy on new datasets.
+
+- Object Detection
+The task of classifying and localizing multiple objects in an image is called object detection.
+common approach was to take a CNN that was trained to classify and locate a single object, then slide it across the image,
+This technique is fairly straightforward, but as you can see it will detect the same object multiple times, at slightly different positions. Some post-processing will then be needed to get rid of all the unnecessary bounding boxes. A common approach for this is called non-max suppression.
+1- First, you need to add an extra objectness output to your CNN, to estimate the probability that a flower is indeed present in the image (alternatively, you could add a “no-flower” class Then get rid of all the bounding boxes for which the objectness score is below some threshold: this will drop all the bounding boxes that don’t actually contain a flower.
+2- Find the bounding box with the highest objectness score, and get rid of all the other bounding boxes that overlap a lot with it
+3. Repeat step two until there are no more bounding boxes to get rid of.
+
+-Fully Convolutional Networks (FCNs)
+FCNs are primarily used for semantic segmentation, a visual task where each pixel in an image is classified according to the object class it belongs to
+ Traditional CNNs, which often include fully connected layers at the end for classification, tend to lose spatial resolution as the image passes through layers with strides greater than 1 
+FCNs address this by converting a pre-trained CNN into a fully convolutional network. This involves:
+Replacing the final dense (fully connected) layers with convolutional layers.
+Adding upsampling layers (e.g., transposed convolutional layers) to recover the spatial resolution lost during the downsampling process in earlier layers
+
+- You Only Look Once (YOLO)
+YOLO is a popular object detection system. Object detection involves identifying and localizing multiple objects within an image by drawing bounding boxes around them and classifying each object.
+OLO falls under the category of single-shot detection models. Unlike older methods that might slide a CNN across an image at different positions and scales, single-shot detectors process the entire image in one pass to directly predict bounding boxes and class probabilities simultaneously. This makes them very fast.
+
+- Semantic Segmentation
+each pixel is classified according to the class of the object it belongs to
+. The main challenge is the gradual loss of spatial resolution in traditional CNNs due to layers with strides greater than 1. 
+A common and effective solution to overcome the spatial resolution loss is to transform a pre-trained CNN (which might have been originally designed for image classification) into a Fully Convolutional Network (FCN).
+An FCN is a network composed entirely of convolutional and pooling layers, without any dense (fully connected) layers at the end.
+To recover the lost spatial resolution, FCNs incorporate upsampling layers. These layers (often implemented using transposed convolutions, also known as "deconvolutions" or "fractionally-strided convolutions") effectively enlarge the feature maps back to the original image dimensions or a desired output resolution.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 

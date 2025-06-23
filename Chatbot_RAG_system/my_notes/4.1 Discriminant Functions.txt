@@ -1,0 +1,230 @@
+4.1 Discriminant Functions
+This section introduces discriminant functions, which assign an input vector 𝑥 to one of 𝐾 classes 𝐶𝑘 based on decision boundaries. The focus is on linear discriminants, where decision surfaces are hyperplanes in the input space.
+
+4.1.1 Two classes
+y(x) = wTx + w0
+w is called a weight vector, and w0 is a bias (not to be confused with bias in the statistical sense).
+- The negative of the bias is sometimes called a threshold. 
+	 The orientation of the paper is entirely determined by this stick (vector 𝑤), while  𝑤0  decides where the paper is located relative to the origin.
+An input vector (x) is assigned to (class C1) if y(x) = 0 and to class C2 otherwise.
+
+4.1.2 Multiple classes
+Now consider the extension of linear discriminants to K >2 classes. We might be tempted be to build a K-class discriminant by combining a number of two-class discriminant functions.
+Consider the use of K−1 classifiers each of which solves a two-class problem of separating points in a particular class Ck from points not in that class. This is known as a one-versus-the-rest classifier
+
+An alternative is to introduce K(K − 1)/2 binary discriminant functions, one for every possible pair of classes. This is known as a one-versus-one classifier. Eachpoint is then classified according to a majority vote amongst the discriminant functions.
+
+The section addresses a challenge in multi-class classification (𝐾>2), where combining multiple two-class discriminants (e.g., "one-vs-rest" or "one-vs-one") can result in ambiguous regions in the input space. To resolve this, a single unified 𝐾-class discriminant approach is proposed.
+This means 𝑥 is classified into the class whose discriminant function 𝑦𝑘(𝑥) has the largest value.
+
+
+4.1.3 Least Squares for Classification
+Applies the least-squares method (used for regression) to classification:
+Minimize a sum-of-squares error function to compute class assignments.
+Not ideal for classification due to:
+Poor approximation of probabilities.
+Sensitivity to outliers.
+Ineffective separation for complex datasets.
+
+4.1.4 Fisher’s Linear Discriminant
+Fisher’s Linear Discriminant is introduced as a method to reduce the dimensionality of data while maximizing the separation between classes. It projects high-dimensional data onto a lower-dimensional space (typically 1D for two-class problems) such that the separation between the classes is maximized, making classification easier.
+
+Goal: Find a direction 𝑤 in the 𝐷-dimensional space such that, when the data is projected onto this direction:
+The means of the projected classes are far apart (maximizing between-class separation).
+The spread (variance) of the projected points within each class is minimized (minimizing within-class overlap).
+
+Projection of Data
+Each data point 𝑥 is projected onto the line defined by 
+𝑤: y=w(T)x.
+The means of the projected points for the two classes are:
+𝑚1′=𝑤(𝑇)𝑚1, 𝑚2′=𝑤(𝑇)𝑚2
+
+Once the data is projected onto 𝑤, the classes can be separated using a threshold on the projected values: 𝑦=𝑤(𝑇)𝑥.
+The threshold can be chosen based on class distributions or by modeling the class-conditional densities of the projected data.
+
+4.1.5 Relation to Least Squares
+Fisher's discriminant can be viewed as a special case of least squares with specific target coding.
+It offers better class separation than least squares.
+Fisher’s criterion can be viewed as a specific case of least squares when a modified target coding scheme is used.
+The least-squares solution provides both the direction 𝑤 (same as Fisher’s result) and the bias 𝑤0 for classification.
+However, unlike Fisher's method, least squares is sensitive to outliers and does not explicitly maximize the separation of class means.
+
+4.1.6 Fisher’s Discriminant for Multiple Classes
+Extends Fisher’s criterion to K>2 classes. 
+Projects data into a (K−1)-dimensional space to maximize class separability.
+
+4.1.7 Perceptron Algorithm
+The perceptron algorithm is an early method for solving two-class classification problems using a linear discriminant model. It works by iteratively updating the weight vector 𝑤 to correctly classify training data points.
+Target Coding:
+t=+1 for class C 1
+t=−1 for class 𝐶2
+The perceptron criterion minimizes the error associated with misclassified points:
+where 𝑀 is the set of misclassified points.
+Correctly classified points contribute zero to the error.
+Misclassified points are penalized based on how far they are from being correctly classified.
+
+Convergence:
+The Perceptron Convergence Theorem states:
+If the data is linearly separable, the perceptron algorithm will find a separating hyperplane in a finite number of steps.
+However, the convergence time can be significant if the data is close to being non-separable.
+
+Non-Separable Data:
+If the data is not linearly separable, the algorithm never converges and continues updating indefinitely.
+
+Dependence on Initialization:
+The solution depends on the initial choice of weights and the order of data presentation.
+
+No Probabilistic Interpretation:
+The perceptron does not provide probabilistic outputs (e.g., class probabilities).
+
+4.2 Probabilistic Generative Models
+These models assume that data is generated by a specific probabilistic process and explicitly model the class-conditional distributions p(x∣Ck) and class priors 𝑝(𝐶𝑘). Predictions are made by using Bayes' theorem to compute the posterior probabilities 𝑝(𝐶𝑘∣𝑥)
+
+Generative Approach:
+
+Models how data 𝑥 is generated for each class 𝐶k by specifying:
+p(x∣Ck): Class-conditional densities.
+p(Ck): Prior probabilities of each class.
+
+Posterior probabilities are computed using Bayes' theorem
+For two classes in terms of the log-odds
+For 𝐾-classes, the posterior probability is given by the softmax function
+
+4.2.1 Continuous Inputs
+If the class-conditional densities are modeled as Gaussians
+- If all classes share the same covariance matrix Σ
+	Posterior probabilities are logistic sigmoid functions of a linear function of 𝑥 (linear decision boundaries).
+For K>2, decision boundaries are linear hyperplanes.
+- If classes have different covariance matrices Σ𝑘
+	The decision boundaries become quadratic functions of x (quadratic discriminant analysis).
+
+4.2.2 Maximum Likelihood
+Model parameters (e.g., μk,Σ,p(Ck) are estimated using maximum likelihood:
+For Gaussian p(x∣Ck ), this involves computing:
+Class means 𝜇𝑘
+Covariance matrix Σ
+Class priors p(Ck) as the fraction of data points in each class.
+
+The maximum likelihood method estimates the parameters of generative models by maximizing the likelihood of the training data. For Gaussian class-conditional densities with shared covariance, this results in linear decision boundaries. While efficient and interpretable, this approach heavily relies on assumptions about the data distribution and is sensitive to outliers.
+
+4.2.3 Discrete Inputs
+For discrete features (e.g., binary or categorical data):
+Use a naive Bayes assumption, where features are conditionally independent given the class.
+f.y.i Naive Bayes classifier assumes that the presence of a particular feature in a class is unrelated to the presence of any other feature. 
+
+4.2.4
+Exponential Family:
+If p(x∣Ck ) belongs to the exponential family (e.g., Gaussian, Poisson):
+Posterior probabilities are still logistic sigmoid (for two classes) or softmax functions (for multiple classes) of a linear function of 𝑥.
+
+4.2 general
+Probabilistic generative models describe how data is generated for each class and use Bayes' theorem for classification. Gaussian models result in linear or quadratic decision boundaries depending on whether the covariance is shared. For discrete data, the naive Bayes assumption simplifies the model. While powerful and interpretable, their performance depends heavily on accurate modeling of 𝑝(𝑥∣𝐶𝑘).
+
+4.3 Probabilistic Discriminative Models
+probabilistic discriminative models, which directly model the posterior probability  without requiring the explicit modeling of class-conditional densities.
+
+Discriminative Approach:
+Instead of modeling p(x∣Ck), discriminative models directly parameterize p(Ck∣x), often using a generalized linear model.
+Parameters are learned by maximum likelihood estimation based on the training data.
+
+4.3.1 Fixed Basis Functions
+The input vector 𝑥 can be transformed into a feature vector ϕ(x) using fixed nonlinear basis functions.
+Linear Decision Boundaries:
+In the transformed feature space ϕ(x), the decision boundaries are linear.
+These correspond to nonlinear boundaries in the original input space 𝑥.
+However, we first make a fixed nonlinear transformation of the inputs using a
+vector of basis functions φ(x). The resulting decision boundaries will be linear in
+the feature space φ, and these correspond to nonlinear decision boundaries in the
+original x space
+
+4.3.2 Logistic Regression
+Logistic regression optimizes the separation of classes in terms of probabilities, unlike least squares.
+The parameters w are estimated by maximizing the likelihood of the training data.
+The error function (negative log-likelihood) 
+Logistic regression directly models p(Ck∣x), requiring fewer parameters than generative models like Gaussian classifiers.
+
+4.3.3 Iterative Reweighted Least Squares (IRLS)
+Logistic regression does not have a closed-form solution due to the nonlinearity of the sigmoid function.
+The Newton-Raphson method is used to optimize the error function iteratively.
+	This involves solving a sequence of weighted least-squares problems.
+
+using:
+∇E(w): Gradient of the error function,
+𝐻: Hessian matrix (second derivative of ∇E(w))
+
+
+4.3.4 Multiclass Logistic Regression (Summary)
+This section extends logistic regression to handle classification problems with more than two classes (K>2) using the softmax function
+Decision Rule: Assign x to the class with the highest posterior probability
+The parameters {𝑤𝑘} are learned using maximum likelihood estimation.
+The error function (negative log-likelihood
+Optimization
+No closed-form solution exists.
+Optimization is performed iteratively using techniques like gradient descent or Newton-Raphson.
+
+4.3.5 Probit Regression 
+Probit Model: The posterior probability of class 𝐶1 is modeled using the cumulative Gaussian (probit) function
+while Logistic regression uses the logistic sigmoid function. Probit regression uses the probit (Gaussian CDF) function, which has a similar S-shaped curve.
+Parameters w are learned via maximum log-likelihood
+
+4.3.6 Canonical Link Functions
+canonical link functions used in generalized linear models (GLMs), which relate the mean of the response variable to a linear combination of predictors.
+Link Function: In GLMs, the relationship between the expected value of the response variable and the linear predictor is defined by the link function
+Canonical Link Function: A link function is canonical if it is derived directly from the natural parameter of the exponential family distribution.
+
+Multiclass Logistic Regression generalizes binary logistic regression to 𝐾-class problems using the softmax function.
+Probit Regression uses the cumulative Gaussian (probit) function instead of the logistic sigmoid and is more suited to certain datasets.
+Canonical Link Functions provide a natural and mathematically efficient way to relate predictors to response variables in GLMs, simplifying computations and aligning with exponential family distributions.
+
+
+4.4 The Laplace Approximation
+The Laplace approximation is a method for approximating complex integrals, commonly used in Bayesian inference when exact solutions are intractable. 
+The Laplace approximation simplifies Bayesian inference by approximating the posterior distribution p(w∣t) as a Gaussian centered at 𝑤MAP. It is widely used in classification models, particularly for logistic regression, where exact Bayesian inference is computationally challenging
+
+4.4.1 Model Comparison and BIC
+The Laplace approximation enables the evaluation of model evidence, and the  BIC provides a computationally efficient approximation for comparing models. BIC balances model fit and complexity, favoring simpler models that explain the data well. While widely used, it assumes large datasets and Gaussian posteriors, which may not hold in all scenarios.
+
+
+4.5 Bayesian Logistic Regression
+Bayesian logistic regression provides a probabilistic interpretation and incorporates regularization naturally
+In Bayesian logistic regression, the goal is to compute the posterior distribution over the parameters 𝑤 given the data:
+
+Bayesian logistic regression incorporates priors to provide a probabilistic framework for classification, improving interpretability and regularization. While the posterior distribution is intractable, approximation methods like the Laplace approximation make inference feasible. This approach is particularly valuable in scenarios where uncertainty quantification and robust regularization are important
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

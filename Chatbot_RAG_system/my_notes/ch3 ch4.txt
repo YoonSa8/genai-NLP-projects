@@ -1,0 +1,102 @@
+ch3 ch4
+🔄 TensorFlow vs PyTorch: Feature-by-Feature Comparison
+Concept 	TensorFlow 2.x 					PyTorch Equivalent
+Tensors		tf.Tensor, tf.Variable				torch.Tensor (mutable by default)
+Custom Loss	Subclass keras.losses.Loss or use a function	Subclass nn.Module or use a function
+Custom Metric	Subclass keras.metrics.Metric			Manual class or functional logic
+Custom Layer	Subclass keras.layers.Layer			Subclass nn.Module
+Custom Model	Subclass keras.Model				Subclass nn.Module
+Gradient Tape	tf.GradientTape()				loss.backward() + torch.autograd.grad()
+Optimizer Step	optimizer.apply_gradients()			optimizer.step()
+Training Loop	model.fit() (or custom loop)			Always manual loop
+Saving Models	model.save(), HDF5 format			torch.save(model.state_dict())
+
+Chapter 13 Topic		TensorFlow		PyTorch Equivalent
+Dataset class			tf.data.Dataset		Custom torch.utils.data.Dataset
+Mapping / Preprocessing		dataset.map(fn)		transform argument in Dataset
+Shuffling			shuffle(buffer_size)	shuffle=True in DataLoader
+Batching			batch(batch_size)	batch_size= in DataLoader
+Repeating			repeat()		Manual loop, or ConcatDataset
+Prefetching			prefetch(N)		prefetch_factor=N in DataLoader
+Multithreading			num_parallel_calls	num_workers= in DataLoader
+
+
+1. Custom Loss Functions
+You can define loss functions as Python functions or by subclassing tf.keras.losses.Loss.
+
+2. Custom Training Loops
+Use tf.GradientTape() to compute gradients manually.
+Allows full control over each step of training (forward pass, loss calculation, backpropagation, optimizer step).
+
+3. Custom Models
+Subclass tf.keras.Model to define models with custom behavior.
+Implement the call() method for the forward pass.
+
+4. Custom Layers
+Subclass tf.keras.layers.Layer to define reusable layers (e.g., a residual block).
+Useful for architectures like ResNets.
+
+5. Custom Metrics
+Subclass tf.keras.metrics.Metric or use stateful logic to track performance across batches.
+Example: custom Mean Absolute Error implementation.
+
+6. Callbacks
+You can use or write callbacks (e.g., EarlyStopping, ModelCheckpoint) to plug into training even if you use a custom loop.
+
+7. Using @tf.function
+You can speed up performance by converting your Python functions to TF Graphs with @tf.function.
+Compatible with custom training loops and models.
+
+it equips you with maximum control and flexibility:
+Perfect for researchers, complex architectures, or nonstandard training loops.
+You gain a solid understanding of how Keras works under the hood, which helps you debug, optimize, and experiment effectively
+
+chapter 13 
+Deep Learning projects often involve large datasets that can’t fit into memory.
+Efficient data input pipelines
+Use tf.data.Dataset for scalable pipelines.
+Use torch.utils.data.Dataset (custom) and DataLoader
+- Supports reading, shuffling, batching, prefetching, and mapping.
+
+Data preprocessing (on-the-fly or ahead of time)
+Use map() to normalize, tokenize, or parse CSV/TFRecords.
+- Can use standard layers (Normalization, TextVectorization, etc.) or custom ones.
+Define a transform inside your Dataset class.
+- Can use torchvision.transforms or custom Python functions.
+
+Encoding categorical/text features
+In TensorFlow:
+Load multiple CSV files using TextLineDataset + interleave.
+For large-scale binary input: use TFRecord + parse_single_example.
+In PyTorch:
+Load CSV files with pandas or csv, and wrap them in a custom Dataset.
+
+4. Shuffling, Batching, Repeating
+Concept		TensorFlow			PyTorch
+Shuffle		dataset.shuffle(buffer_size)	shuffle=True in DataLoader
+Repeat		dataset.repeat()		Manual loop or ConcatDataset
+Batch		dataset.batch(batch_size)	batch_size= in DataLoader
+Prefetch	dataset.prefetch(N)		prefetch_factor + num_workers
+
+
+Preprocessing Strategies
+Strategy		Pros					Cons
+Offline 		preprocessing (e.g., pandas, NumPy)	Fast at training time	Hard to keep sync across deployment
+tf.data.map() 		Flexible, modular			Repeated each epoch (unless cached)
+Inside the model	(preprocessing layers)			Portable (gets saved with the model)	Not all ops are differentiable
+TF Transform (TFX)	Write once, reuse across t		raining and serving	More complex setup
+
+PyTorch doesn’t have a TF Transform equivalent yet.
+
+
+
+
+
+
+
+
+
+
+
+
+

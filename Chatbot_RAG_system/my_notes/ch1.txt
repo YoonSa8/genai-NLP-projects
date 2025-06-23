@@ -1,0 +1,219 @@
+Logical Computations with Neurons
+The artificial neuron activates its output when more than a certain number of its inputs are active You can imagine how these networks can be combined to compute complex logical
+expressions
+
+The Perceptron 
+called a threshold logic unit (TLU), or sometimes a linear threshold unit (LTU). The inputs and output are numbers (instead of binary on/off values),
+Threshold logic unit: an artificial neuron which computes a weighted sum of its inputs then applies a step function
+
+A single TLU can be used for simple linear binary classification. It computes a linear
+combination of the inputs, and if the result exceeds a threshold, it outputs the positive
+class.
+
+A Perceptron is simply composed of a single layer of TLUs,7 with each TLU connected
+to all the inputs. When all the neurons in a layer are connected to every neuron in the
+previous layer (i.e., its input neurons), the layer is called a fully connected layer, or a
+dense layer. The inputs of the Perceptron are fed to special passthrough neurons
+called input neurons: they output whatever input they are fed. All the input neurons
+form the input layer. Moreover, an extra bias feature is generally added (x0 = 1): it is
+typically represented using a special type of neuron called a bias neuron, which outputs
+1 all the time.
+
+Computing the outputs of a fully connected layer
+hW, b X = ϕ XW + b
+In this equation:
+• As always, X represents the matrix of input features. It has one row per instance
+and one column per feature.
+• The weight matrix W contains all the connection weights except for the ones
+from the bias neuron. It has one row per input neuron and one column per artificial
+neuron in the layer.
+• The bias vector b contains all the connection weights between the bias neuron
+and the artificial neurons. It has one bias term per artificial neuron.
+• The function ϕ is called the activation function: when the artificial neurons are
+TLUs, it is a step function (but we will discuss other activation functions shortly).
+So
+
+Hebb’s rule Cells that fire together, wire together”; that is, the connection weight between two neurons tends to increase when they fire simultaneously
+
+Perceptron learning rule (weight update) 
+wi, j next step = wi,j + η (yj − y'j)xi
+• wi, j is the connection weight between the ith input neuron and the jth output
+neuron.
+• xi is the ith input value of the current training instance.
+• y j is the output of the jth output neuron for the current training instance.
+• yj is the target output of the jth output neuron for the current training instance.
+• η is the learning rate.
+
+problem : the fact that they
+are incapable of solving some trivial problems
+solution : It turns out that some of the limitations of Perceptrons can be eliminated by stacking multiple Perceptrons. The resulting ANN is called a Multilayer Perceptron (MLP
+
+The Multilayer Perceptron and Backpropagation
+An MLP is composed of one (passthrough) input layer, one or more layers of TLUs,
+called hidden layers, and one final layer of TLUs called the output layer
+
+When an ANN contains a deep stack of hidden layers,9 it is called a deep neural network
+(DNN). The field of Deep Learning studies DNNs, and more generally models containing deep stacks of computations
+
+backpropagation algorithm
+is able to compute the gradient of the network’s error with regard to every single
+model parameter. In other words, it can find out how each connection weight and
+each bias term should be tweaked in order to reduce the error. Once it has these gradients,
+it just performs a regular Gradient Descent step, and the whole process is
+repeated until the network converges to the solution.
+
+Regression MLPs
+when building an MLP for regression, you do not want to use any activation function for the output neurons so they are free to output any range of values.
+The loss function to use during training is typically the mean squared error, but if you
+have a lot of outliers in the training set, you may prefer to use the mean absolute
+error instead
+
+Classification MLPs
+MLPs can also be used for classification tasks. For a binary classification problem,
+you just need a single output neuron using the logistic activation function: the output
+will be a number between 0 and 1, which you can interpret as the estimated probability
+of the positive class MLPs can also easily handle multilabel binary classification tasks
+
+If each instance can belong only to a single class, out of three or more possible classes, then you need to have one output neuron per class, and you should use the softmax activation function for the whole output layer to ensure that all the estimated probabilities are between 0 and 1 and that they add up to 1 . This is called multiclass
+classification.
+
+Fine-Tuning Neural Network Hyperparameters
+The flexibility of neural networks is also one of their main drawbacks: there are many
+hyperparameters to tweak
+
+One option is to simply try many combinations of hyperparameters and see which
+one works best on the validation set (or use K-fold cross-validation).
+The exploration may last many hours, depending on the hardware, the size of the
+dataset, the complexity of the model, and the values of n_iter and cv.
+
+Number of Hidden Layers
+For many problems, you can begin with a single hidden layer and get reasonable
+results. An MLP with just one hidden layer can theoretically model even the most
+complex functions, provided it has enough neurons. But for complex problems, deep
+networks have a much higher parameter efficiency than shallow ones: they can model
+complex functions using exponentially fewer neurons than shallow nets, allowing
+them to reach much better performance with the same amount of training data.
+In summary, for many problems you can start with just one or two hidden layers and
+the neural network will work just fine. For more complex problems,
+you can ramp up the number of hidden layers until you start overfitting the training
+set. Very complex tasks
+
+
+Number of Neurons per Hidden Layer
+The number of neurons in the input and output layers is determined by the type of
+input and output your task requires.
+As for the hidden layers, it used to be common to size them to form a pyramid, with
+fewer and fewer neurons at each layer
+Just like the number of layers, you can try increasing the number of neurons gradually
+until the network starts overfitting. But in practice, it’s often simpler and more
+efficient to pick a model with more layers and neurons than you actually need, then
+use early stopping and other regularization techniques to prevent it from overfitting.
+Vincent Vanhoucke, a scientist at Google, has dubbed this the “stretch pants”
+
+
+Learning rate
+The learning rate is arguably the most important hyperparameter. In general, the
+optimal learning rate is about half of the maximum learning rate
+One way to find a good learning rate is to train the model for a few hundred iterations,
+starting with a very low learning rate (e.g., 10-5) and gradually increasing
+it up to a very large value (e.g., 10). This is done by multiplying the learning rate
+by a constant factor at each iteration (e.g., by exp(log(106)/500) to go from 10-5 to
+10 in 500 iterations).
+
+
+Optimizer
+Choosing a better optimizer than plain old Mini-batch Gradient Descent (and
+tuning its hyperparameters) is also quite important
+
+Batch size
+The batch size can have a significant impact on your model’s performance and
+training time. The main benefit of using large batch sizes is that hardware accelerators
+like GPUs can process them efficiently
+one strategy is to try to
+use a large batch size, using learning rate warmup, and if training is unstable or
+the final performance is disappointing, then try using a small batch size instead
+
+Activation function
+We discussed how to choose the activation function earlier in this chapter: in
+general, the ReLU activation function will be a good default for all hidden layers.
+For the output layer, it really depends on your task.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

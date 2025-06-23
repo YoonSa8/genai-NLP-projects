@@ -1,0 +1,275 @@
+Mixture Models and the EM Algorithm 
+This chapter introduces mixture models, a powerful statistical tool used for modeling complex probability distributions. The core idea behind mixture models is the use of latent variables, which allow us to express complicated distributions in terms of simpler components.
+Latent variables are variables that can only be inferred indirectly through a mathematical model from other observable variables that can be directly observed or measured.
+
+9.1 K-Means Clustering
+1. Introduction to Clustering
+The goal of clustering is to group a set of data points into distinct categories or "clusters" based on similarity. this section, introduces K-means clustering, a widely used unsupervised learning algorithm for partitioning data into 𝐾 clusters.
+Given Data:
+A dataset {x1,x2,...,xN} containing N observations, where each 𝑥𝑛​ is a D-dimensional Euclidean vector.
+The goal is to divide these data points into 𝐾 distinct clusters, assuming 𝐾 is known beforehand.
+The assumption is that points in the same cluster should be closer to each other than to points in different clusters.
+
+2. Defining Cluster Centers (𝜇𝑘 )
+To formalize the clustering concept, the author introduces prototypes or cluster centers (𝜇𝑘) for each of the 𝐾 clusters.
+The 𝜇𝑘 values represent the centroids (mean points) of each cluster.
+The goal is to assign each data point to the cluster with the nearest 𝜇𝑘 and adjust 𝜇𝑘  iteratively to minimize an objective function.
+
+3. Objective Function for K-Means (Distortion Measure)
+The objective function in K-means is defined as:
+J= ∑  ∑ rnk∥xn−μk∥^2
+  n=1k=1
+where: 
+- 𝑟𝑛𝑘∈{0,1} is a binary assignment variable (1-of-K coding).
+- If data point 𝑥𝑛  belongs to cluster k, then 𝑟𝑛𝑘=1, otherwise 𝑟𝑛𝑘=0
+- The goal of K-means is to minimize 𝐽, which represents the total squared Euclidean distance between each data point and its assigned cluster center.
+
+4. The K-Means Algorithm (Two-Step Iterative Process)
+1. The K-means algorithm iteratively minimizes 𝐽 using two alternating steps:
+Assignment Step (E-Step equivalent):
+Each data point is assigned to the cluster whose center 𝜇𝑘 is closest in Euclidean distance
+rnk={ 1, if k=arg min j ∥xn−μj∥^2 otherwise 0
+This step is equivalent to classifying each data point based on nearest-neighbor rules.
+2. Update Step (M-Step equivalent):
+The cluster centers 𝜇𝑘 are updated based on the new assignments by computing the mean of all data points assigned to that cluster
+Each cluster center is updated to be the mean (centroid) of all points assigned to it.
+
+5. Convergence and Properties of K-Means
+These two steps are repeated iteratively until assignments no longer change (or a maximum number of iterations is reached).
+The algorithm is guaranteed to converge because each iteration reduces the objective function J.
+However, convergence may be to a local minimum, not necessarily the global optimum.
+
+6. Limitations of K-Means
+some key limitations of K-means:
+Sensitivity to initialization: Poor initialization can lead to slow convergence or suboptimal solutions.
+		      A common heuristic is to initialize as 𝜇𝑘 a random subset of the data points.
+
+Not robust to outliers: K-means minimizes squared distances, which means it is highly affected by outliers.
+			K-medoids is an alternative method that reduces this sensitivity.
+K-medoids : 	
+
+Fixed K assumption: The number of clusters 𝐾 must be pre-defined, which may not always be known beforehand.
+Elbo method 
+Assumes spherical clusters: K-means works well when clusters are compact and well-separated, but it fails for complex cluster shapes.
+
+9.1.1 Image Segmentation and Compression
+1. Image Segmentation
+Definition: Image segmentation is the process of dividing an image into meaningful regions (e.g., objects or similar textures).
+K-means Approach:
+Each pixel in an image can be treated as a data point in a 3-dimensional RGB space.
+The algorithm clusters pixels based on color similarity.
+Pixels in the same cluster are assigned the same mean color (𝜇𝑘 ), reducing the number of unique colors in the image.
+This allows for segmentation based purely on color intensity, without considering spatial relationships.
+
+2. Image Compression Using K-Means (Vector Quantization)
+Another key application of K-means is in lossy data compression.
+Traditional Images:
+A digital image consists of 𝑁 pixels, each represented by an RGB triplet (24 bits per pixel).
+
+Compression Idea:
+Instead of storing all pixel values, we store only the 𝐾 cluster centers and assign each pixel to its closest center.
+This reduces the number of unique colors in the image.
+
+Bit Savings Calculation:
+Without compression: 24N bits needed.
+With K-means: 𝑁log2 K+24K bits needed.
+Compression ratio Nlog2 K+24K/24N 
+-p.s the log base is 2 
+Higher 𝐾 means better quality but lower compression. Optimal 𝐾 balances both.
+
+
+9.2 Mixtures of Gaussians
+1. Introduction to Gaussian Mixture Models (GMMs)
+A Gaussian Mixture Model (GMM) is an extension of the single Gaussian distribution that allows modeling complex, multimodal data distributions. Unlike a single Gaussian, which assumes the data is generated from one normal distribution, a GMM assumes that data points are drawn from multiple Gaussian components.
+Each Gaussian component is parameterized by:
+Mean (𝜇𝑘 ): The center of the Gaussian.
+Covariance matrix (Σ𝑘 ): Defines the shape and spread of the Gaussian distribution.
+Mixing coefficient (𝜋𝑘): The probability that a randomly chosen data point belongs to component 𝑘​
+
+2. Role of Latent Variables in GMMs
+To formalize the mixture model, we introduce latent variables 𝑧, which indicate which Gaussian component generated each data point.
+𝑧 follows a categorical distribution (one-hot encoded), meaning: 𝑝(𝑧𝑘=1)=𝜋𝑘
+The conditional distribution of 𝑥 given 𝑧𝑘 =1 is Gaussian: p(x∣zk=1)=N(x∣μk,Σk)
+The joint distribution of 𝑥 and 𝑧 is: p(x,z)=p(z)p(x∣z)
+The marginal distribution of 𝑥 is obtained by summing over all possible 𝑧
+ 
+3. Responsibilities in GMMs
+The responsibility 𝛾(𝑧𝑘) is the posterior probability that a data point 𝑥 belongs to Gaussian component 𝑘, given by Bayes' theorem
+This term plays a key role in the Expectation-Maximization (EM) algorithm, as it determines the degree to which each data point influences each Gaussian component.
+
+9.2.1 Maximum Likelihood Estimation (MLE) for GMMs
+Singularities in Maximum Likelihood for GMMs
+Unlike a single Gaussian, maximizing the likelihood for a GMM presents a major issue: singularities.
+If one Gaussian collapses onto a single data point, its variance Σ𝑘 approaches zero, causing the likelihood to diverge to infinity.
+This happens because the probability density of a Gaussian is inversely proportional to its variance, meaning as Σk →0, p(x) explodes.
+To prevent this, heuristics such as regularization or Bayesian priors are used.
+ Identifiability Issue in GMMs
+Since GMMs allow permutation of components, any set of parameters can be arranged in K! different ways that produce the same likelihood.
+This makes parameter interpretation ambiguous, though it does not affect the quality of density estimation.
+
+9.2.2 Expectation-Maximization (EM) for Gaussian Mixtures
+1. Why Use EM?
+The log-likelihood function contains a log-sum, making direct maximization intractable.
+Instead, EM iteratively improves the likelihood in two steps:
+E-step: Compute the expected complete-data log-likelihood.
+M-step: Maximize this expectation with respect to model parameters.
+
+2. E-Step (Expectation Step)
+Using the current parameter estimates (𝜋𝑘,𝜇𝑘,Σ𝑘), compute the responsibilities This represents the soft assignment of each data point to each Gaussian component.
+
+3. M-Step (Maximization Step)
+Given the responsibilities 𝛾(𝑧𝑛𝑘), update the parameters:
+Mean update (weighted average of data points assigned to cluster 𝑘)
+Covariance update (weighted covariance matrix)
+Mixing coefficient update (fraction of data points assigned to cluster 𝑘)
+
+4. Convergence of EM
+EM guarantees an increase in log-likelihood at each step.
+The algorithm stops when the change in log-likelihood is below a threshold.
+However, EM only finds local optima, meaning different initializations can lead to different results.
+
+9.3 An Alternative View of the EM
+The EM algorithm maximizes the likelihood function when the model contains unobserved (latent) variables.
+Instead of working with the marginal likelihood p(X∣θ), which involves a log-sum, EM considers the complete-data likelihood p(X,Z∣θ), where 𝑍 represents latent variables.
+
+2. General Framework of EM
+Given:
+Observed data: X={x1,x2,...,xN}
+Latent variables:  Z={z1,z2,...,zN}
+Model parameters: 𝜃
+
+The log-likelihood function is:
+ln p(X∣θ)=ln ∑p(X,Z∣θ)
+Since summation is inside the log, direct maximization is difficult. Instead, EM works as follows:
+
+E-Step (Expectation Step)
+Compute the expected log-likelihood over the latent variables, given the current estimate of the parameters: Q(θ,θold)= ∑p(Z∣X,θold)lnp(X,Z∣θ)
+where p(Z∣X,θold) is the posterior probability of the latent variables.
+
+M-Step (Maximization Step)
+Find the new parameters that maximize the expected log-likelihood:
+θnew =arg maxQ(θ,θ,old)
+Each iteration ensures that the likelihood never decreases.
+
+EM for Maximum A Posteriori (MAP) Estimation
+If a prior p(θ) is introduced, EM can be used for MAP estimation instead of MLE.
+The M-step maximizes: Q(θ,θold)+lnp(θ)
+	This avoids overfitting and prevents singularities in GMMs.
+
+9.3.1 Gaussian Mixtures Revisited
+Here, the author re-examines Gaussian Mixture Models (GMMs) using the alternative EM interpretation.
+
+Complete-Data Log-Likelihood
+If we had full knowledge of which Gaussian component generated each data point, the log-likelihood would simplify to: ln p(X,Z|μ,Σ,π) =∑ ∑ znk {ln πk + lnN(xn|μk,Σk)}
+					n=1k=1
+where 𝑧𝑛𝑘 is a binary variable indicating the component assignment
+
+Expectation Step (E-Step)
+Compute the expected value of 𝑧𝑛𝑘
+​
+Maximization Step (M-Step)
+The new parameter estimates μk, ∑k, πk
+
+Key Takeaways
+EM is equivalent to MLE for GMMs, but the use of latent variables simplifies the optimization.
+The responsibilities softly assign data points to Gaussian components
+
+
+9.3.2 Relation to K-Means
+ compares K-means and EM, highlighting their similarities and differences:
+1. Similarities
+Both algorithms assign data points to clusters.
+Both involve iterative optimization with alternating steps.
+2. Differences
+K-means uses hard assignments (𝑟𝑛𝑘∈{0,1}), while EM uses soft assignments (𝛾(𝑧𝑛𝑘).
+
+K-means minimizes squared Euclidean distance, while EM maximizes log-likelihood.
+
+K-means assumes equal variance for clusters, while EM estimates full covariance matrices.
+
+3. K-Means as a Special Case of EM
+If we assume Gaussian clusters with equal, small variances, EM reduces to K-means.
+𝛾(𝑧𝑛𝑘)→1(for closest cluster)
+Thus, K-means is a limit case of EM for Gaussian mixtures.
+
+9.3.3 Mixtures of Bernoulli Distributions
+extends mixture models to binary data, using Bernoulli Mixture Models.
+Each data point 𝑥𝑛 is a binary vector (𝑥𝑖∈{0,1}).
+The EM algorithm remains the same but with Bernoulli parameters instead of Gaussian ones.
+
+9.3.4 EM for Bayesian Linear Regression
+The author applies EM to Bayesian regression, where model parameters have priors.
+Latent variable: The regression weights 𝑤.
+E-step: Compute posterior mean and covariance of 𝑤.
+M-step: Maximize the marginal likelihood to update hyperparameters 𝛼,𝛽
+
+9.4: The EM Algorithm in General
+1. General Formulation of the EM Algorithm
+- The EM algorithm is a general optimization technique used to find maximum likelihood (ML) estimates for models with latent (unobserved) variables.
+- The goal is to maximize the marginal likelihood
+2. The EM Algorithm: Two-Step Iterative Approach
+The EM algorithm circumvents the difficulty of optimizing the marginal likelihood by instead maximizing an expected complete-data log-likelihood in two alternating steps:
+
+Step 1: Expectation Step (E-Step)
+Compute the expected complete-data log-likelihood under the posterior distribution of the latent variables p(Z∣X,θold):
+𝑄(θ,θold)= ∑p(Z∣X,θold)ln p(X,Z∣θ)
+This step fills in the missing information using the posterior over 𝑍.
+Step 2: Maximization Step (M-Step)
+Find the new parameter estimates by maximizing 𝑄(𝜃,𝜃old)
+θ new=arg max Q (θ,θ old)
+This step updates 𝜃 in a way that increases the likelihood.
+Iterate Until Convergence
+- The E-step and M-step are repeated until convergence, meaning the parameters 𝜃 stop changing significantly or the log-likelihood stabilizes.
+
+3. Why EM Works: Theoretical Justification
+To understand why EM increases the log-likelihood, the author introduces the Jensen’s Inequality and the variational lower bound.
+
+1. Jensen’s Inequality and the Log-Sum Problem
+The difficulty in directly maximizing the log-likelihood comes from the log-sum structure
+Since the log function is concave, we can apply Jensen’s inequality:
+ln∑𝑤𝑖 𝑓𝑖≥∑𝑤𝑖 ln 𝑓𝑖 ,for weights wi summing to 1
+This provides a lower bound on the log-likelihood that EM maximizes.
+
+2. Lower Bound Interpretation (Variational View)
+Define a distribution 𝑞(𝑍) over latent variables. 
+lnp(X∣θ)= ∑q(Z)ln p(X,Z∣θ)/q(Z) + ∑ q(Z)ln q(Z)/p(Z∣X,θ)
+​-The first term is the variational lower bound (which EM maximizes).
+- The second term is the KL divergence between q(Z) and the true posterior 𝑝(𝑍∣𝑋,𝜃), which is always non-negative.
+
+Thus, EM guarantees non-decreasing likelihood because each iteration tightens this lower bound.
+ 
+4. EM Convergence and Guarantees
+1. EM Increases the Likelihood at Each Iteration
+- At each iteration, the M-step maximizes 𝑄(θ,θold), which is a lower bound on the true log-likelihood.
+- This ensures: ln p(X∣θnew )≥ln p(X∣θ old) meaning EM never decreases the likelihood.
+
+2. EM Does Not Guarantee a Global Maximum
+- The log-likelihood often has multiple local maxima.
+- EM may get stuck in a local maximum depending on initialization.
+
+3. Stopping Criteria for EM
+The algorithm is considered converged when:
+- The log-likelihood changes very little between iterations.
+- The parameter updates become small.
+- A fixed number of iterations is reached.
+
+5. Extensions and Applications of EM
+1. Generalized EM (GEM)
+- In the standard EM algorithm, the M-step fully maximizes Q(θ).
+- In Generalized EM (GEM), we increase (but do not fully maximize) Q(θ).
+- GEM is useful when exact maximization is difficult, such as in variational inference.
+
+2. EM in Bayesian Inference
+EM can also be used in Bayesian models, where instead of MLE, we maximize a posterior:
+Q(θ,θold)+lnp(θ)
+- This regularizes the estimates and prevents overfitting.
+
+3. Applications of EM
+The EM algorithm is widely used in machine learning and statistics, including:
+- Gaussian Mixture Models (GMMs) (soft clustering)
+- Hidden Markov Models (HMMs) (speech recognition)
+- Topic modeling (Latent Dirichlet Allocation, LDA)
+- Missing data imputation
+
+
+

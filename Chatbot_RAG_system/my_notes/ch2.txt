@@ -1,0 +1,317 @@
+ch2 
+-The Vanishing/Exploding Gradients Problems
+Unfortunately, gradients often get smaller and smaller as the algorithm progresses
+down to the lower layers. As a result, the Gradient Descent update leaves the lower
+layers’ connection weights virtually unchanged, and training never converges to a
+good solution. We call this the vanishing gradients problem
+
+In some cases, the opposite
+can happen: the gradients can grow bigger and bigger until layers get insanely
+large weight updates and the algorithm diverges. This is the exploding gradients problem
+
+In some cases, the opposite
+can happen: the gradients can grow bigger and bigger until layers get insanely
+large weight updates and the algorithm diverges. This is the exploding gradients problem,
+
+-Glorot and He Initialization
+They point out that we need the signal to flow properly in both
+directions: in the forward direction when making predictions, and in the reverse
+direction when backpropagating gradients. We don’t want the signal to die out, nor
+do we want it to explode and saturate
+
+For the signal to flow properly, the authors
+argue that we need the variance of the outputs of each layer to be equal to the variance
+of its inputs,2 and we need the gradients to have equal variance before and after
+flowing through a layer in the reverse direction
+It is actually not possible to guarantee both
+unless the layer has an equal number of inputs and neurons but Glorot and Bengio proposed a good compromise that has proven to work very well in practice: the connection weights of each
+layer must be initialized randomly as described in Equation 11-1, where fanavg = (fanin
++ fanout)/2. This initialization strategy is called Xavier initialization or Glorot initialization
+
+By default, Keras uses Glorot initialization with a uniform distribution. When creating
+a layer, you can change this to He initialization by setting kernel_initializer="he_uniform" or kernel_initializer="he_normal"
+
+-Nonsaturating Activation Functions
+it turns out that other activation functions behave much better in deep neural networks—
+in particular, the ReLU activation function, mostly because it does not saturate
+for positive values
+
+Unfortunately, the ReLU activation function is not perfect. It suffers from a problem
+known as the dying ReLUs during training, some neurons effectively “die,” meaning
+they stop outputting anything other than 0. In some cases, you may find that half of
+your network’s neurons are dead,if you used a large learning rate.
+
+A neuron dies when its weights get tweaked in such a way that the weighted sum of its
+inputs are negative for all instances in the training set. When this happens, it just
+keeps outputting zeros, and Gradient Descent does not affect it anymore because the
+gradient of the ReLU function is zero when its input is negative.
+
+to solve that we use leaky ReLU. LeakyReLUα(z) = max(αz, z) α defines how much the function “leaks”: it is the
+slope of the function for z < 0 and is typically set to 0.01. This small slope ensures that
+leaky ReLUs never die;
+
+parametric leaky ReLU (PReLU), where α is
+authorized to be learned during training (instead of being a hyperparameter, it
+becomes a parameter that can be modified by backpropagation
+PReLU was reported to strongly outperform ReLU on large image datasets, but
+on smaller datasets it runs the risk of overfitting the training set.
+
+Arné Clevert et al.6 proposed a new activation
+function called the exponential linear unit (ELU) that outperformed all the ReLU
+variants in the authors’ experiments: training time was reduced, and the neural network
+performed better on the test set.
+
+The ELU activation function looks a lot like the ReLU function, with a few major
+differences:
+• It takes on negative values when z < 0, which allows the unit to have an average
+output closer to 0 and helps alleviate the vanishing gradients problem
+• It has a nonzero gradient for z < 0, which avoids the dead neurons problem.
+• If α is equal to 1 then the function is smooth everywhere, including around z = 0,
+which helps speed up Gradient Descent since it does not bounce as much to the
+left and right of z = 0.
+
+The main drawback of the ELU activation function is that it is slower to compute
+than the ReLU function and its variants
+
+Klambauer et al. introduced the Scaled ELU (SELU)
+activation function: as its name suggests, it is a scaled variant of the ELU activation
+function.  if you build a neural network composed exclusively of a stack of dense layers, and if all hidden layers use the SELU activation function, then the network will self-normalize: the output of each layer will tend to
+preserve a mean of 0 and standard deviation of 1 during training, which solves the
+vanishing/exploding gradients problem.
+There are, however, a few conditions for self-normalization to happen
+
+• The input features must be standardized (mean 0 and standard deviation 1).
+• Every hidden layer’s weights must be initialized with LeCun normal initialization.
+• The network’s architecture must be sequential.
+• The paper only guarantees self-normalization if all layers are dense,
+
+So, which activation function should you use for the hidden layers
+of your deep neural networks? Although your mileage will vary, in
+general SELU > ELU > leaky ReLU (and its variants) > ReLU > tanh
+> logistic.
+
+- Batch Normalization
+The technique consists of
+adding an operation in the model just before or after the activation function of each
+hidden layer.
+simply zero-centers and normalizes each input, then scales and shifts the result using two new parameter vectors per layer: one for scaling,
+the other for shifting.
+if you add a BN layer as the very first layer you do not need to standardize your training
+set
+In order to zero-center and normalize the inputs, the algorithm needs to estimate
+each input’s mean and standard deviation. It does so by evaluating the mean and standard
+deviation of the input over the current mini-batch
+
+How it works:
+•During training, the BN operation zero-centers and normalizes the inputs of the layer using the mean (μB) and standard deviation (σB) calculated over the current mini-batch (B). A small smoothing term (ε) is added to the denominator to avoid division by zero.
+•After standardizing, it scales (γ) and shifts (β) the result using two new parameter vectors learned per layer. These parameters allow the model to learn the optimal scale and mean for the layer's inputs. The output of the BN operation is a rescaled and shifted version of the inputs.
+•During training, the parameters γ and β are learned through regular backpropagation.
+•At test time, instead of using the mini-batch statistics (μB and σB), BN uses estimated "final" input means (μ) and standard deviations (σ). These final statistics are typically estimated during training using a moving average of the layer's input means and standard deviations. This is necessary because test-time predictions might be for individual instances or small, unreliable batches.
+
+
+It significantly reduces the vanishing gradients problem, so much so that even saturating activation functions like tanh and logistic can be used effectively.
+•It makes the network much less sensitive to the weight initialization technique.
+•It allows the use of much larger learning rates, substantially speeding up the learning process.
+•BN helps networks converge much faster, requiring fewer epochs to reach the same performance.
+•It acts as a regularizer, reducing the need for other regularization techniques like dropout.
+
+Drawbacks and considerations:
+•BN adds some complexity to the model.
+•There is a runtime penalty during inference due to the extra computations. However, this can often be avoided after training by fusing the BN layer with the previous layer.
+•Training might seem slower per epoch with BN, but the faster convergence usually means the total training time is reduced.
+•Batch Normalization is tricky to use in recurrent neural networks
+
+- Gradient Clipping
+clip the gradients during backpropagation so that they never exceed some threshold. This is
+called Gradient Clipping.12 This technique is most often used in recurrent neural networks
+
+- Reusing Pretrained Layers
+find an existing neural network that accomplishes a similar task to the one you are trying to tackle then reuse the lower layers of this network. This technique is called transfer learning.
+
+The output layer of the original model should usually be replaced because it is most
+likely not useful at all for the new task
+
+Try freezing all the reused layers first (i.e., make their weights non-trainable so that
+Gradient Descent won’t modify them), then train your model and see how it performs.
+Then try unfreezing one or two of the top hidden layers to let backpropagation
+tweak them and see if performance improves
+
+- Unsupervised Pretraining
+In unsupervised training, a model is trained on the unlabeled data (or on
+all the data) using an unsupervised learning technique, then it is fine-tuned for the final
+task on the labeled data using a supervised learning technique; the unsupervised part
+may train one layer at a time as shown here, or it may train the full model directly
+
+Faster Optimizers
+1.Momentum Optimization:
+◦Inspired by a bowling ball rolling down a slope, this method doesn't just consider the local gradient but also the "momentum" from previous gradients.
+◦It adds a momentum vector to the weight updates.
+◦The gradient is used for acceleration, not speed.
+◦A hyperparameter β (momentum, typically 0.9) is used to simulate friction and prevent momentum from growing too large.
+◦If the gradient is constant, the terminal velocity (maximum update size) is the gradient multiplied by the learning rate and 1/(1–β). With β = 0.9, it can go 10 times faster than Gradient Descent.
+◦It helps escape plateaus faster and can roll past local optima.
+◦Momentum can cause overshooting and oscillations, but the friction (β < 1) helps reduce this.
+
+2.Nesterov Accelerated Gradient (NAG):
+◦A variation of momentum optimization, often faster.
+◦It measures the gradient slightly ahead in the direction of the momentum vector.
+◦This small tweak is usually more accurate as the momentum generally points towards the optimum.
+◦It helps reduce oscillations and converges faster than regular momentum.
+
+3.AdaGrad:
+◦Addresses the elongated bowl problem by scaling down the gradient vector along the steepest dimensions.
+◦It accumulates the square of the gradients for each parameter in a vector s.
+◦The update step scales down the gradient by the square root of s plus a small smoothing term ε.
+◦This results in an adaptive learning rate that decays faster for steeper dimensions.
+◦It requires less tuning of the initial learning rate.
+◦AdaGrad often performs well on simple problems but can stop too early when training neural networks because the learning rate becomes too small.
+
+4.RMSProp:
+◦Fixes AdaGrad's problem of stopping too early by accumulating only the gradients from recent iterations using exponential decay.
+◦The first step accumulates squares of gradients into s using a decay rate β (typically 0.9).
+◦The update step is similar to AdaGrad, scaling the gradient by the square root of s plus ε.
+◦It almost always performs better than AdaGrad. It was a preferred optimizer before Adam.
+
+5.Adam and Nadam Optimization:
+◦Adam (adaptive moment estimation) combines ideas from momentum optimization and RMSProp.
+◦It keeps track of an exponentially decaying average of past gradients (like momentum, the "first moment") and an exponentially decaying average of past squared gradients (like RMSProp, the "second moment").
+◦Steps 1 and 2 in its algorithm compute these decaying averages (m and s).
+◦Steps 3 and 4 are bias correction steps to account for m and s being initialized at 0.
+◦Step 5 updates the parameters using the decaying averages.
+◦The momentum decay β1 is typically 0.9, and the scaling decay β2 is typically 0.999. The smoothing term ε is usually 10–7.
+◦Adam is an adaptive learning rate algorithm and requires less tuning of the learning rate η (often defaults to 0.001).
+◦Nadam is Adam optimization with the Nesterov trick. It often converges slightly faster than Adam.
+◦Adaptive methods like RMSProp, Adam, and Nadam converge fast but can sometimes lead to solutions that generalize poorly on certain datasets. The source suggests trying plain Nesterov Accelerated Gradient if performance is disappointing with adaptive methods
+
+Learning Rate Scheduling
+you can do better than a constant learning rate: if you start with a large learning
+rate and then reduce it once training stops making fast progress, you can reach a
+good solution faster than with the optimal constant learning rate.
+
+- Avoiding Overfitting Through Regularization
+- ℓ1 and ℓ2 Regularization
+ℓ1 regularization if you
+want a sparse model (with many weights equal to 0). Here is how to apply ℓ2 regularization
+to a Keras layer’s connection weights, using a regularization factor of 0.01
+
+-Dropout
+at every training step, every neuron (including the
+input neurons, but always excluding the output neurons) has a probability p of being
+temporarily “dropped out,” meaning it will be entirely ignored during this training
+step, but it may be active during the next step 
+The hyperparameter p is called the dropout rate, and it is typically set between 10% and 50%:
+
+
+-Max-Norm Regularization
+for each neuron, it constrains the weights w of the incoming
+connections such that ∥ w ∥2 ≤ r, where r is the max-norm hyperparameter and ∥ · ∥2
+is the ℓ2 norm.
+it is typically implemented by computing ∥w∥2 after each training
+step and rescaling w if needed (w ← w r/‖ w ‖2).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

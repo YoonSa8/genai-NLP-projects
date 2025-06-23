@@ -1,0 +1,14 @@
+It is event-driven and uses asynchronous, non-blocking I/O.
+Express.js is a highly configurable framework for building applications on Node.js.
+It abstracts lower-level APIs in Node.js by using  HTTP utility methods and middleware.
+Before you build your first Node.js app, let’s get familiar with the IDE and some key Node.js
+concepts.
+Express.js simplifies application development on Node.js.
+The following features enable you to develop your application quickly:
+Public: public assets like image, CSS, and javascript.
+Templates/views: server-rendered HTML that is sent back to the client in response to
+requests.
+Routes: defines endpoints that accept and process client requests.
+Server.js: a file which contains the main application code.
+Package.json: contains metadata information about the project including dependencies,
+scripts, and so on.	

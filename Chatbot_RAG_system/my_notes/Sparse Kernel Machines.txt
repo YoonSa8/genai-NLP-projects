@@ -1,0 +1,332 @@
+Sparse Kernel Machines
+Kernel-based learning algorithms often require evaluating kernel functions for all training data points, leading to computational inefficiencies. Sparse kernel machines address this by using a subset of data points, reducing computational cost.
+The two main methods discussed:
+Support Vector Machines (SVMs): Based on maximum margin classification.
+Relevance Vector Machines (RVMs): Bayesian formulation that leads to sparser solutions and provides probabilistic outputs.
+
+7.1. Maximum Margin Classifiers
+We begin our discussion of support vector machines by returning to the two-class classification problem using linear models of the form y(x) = wTφ(x) + b
+
+The training set consists of input vectors xn with corresponding labels 𝑡𝑛∈{−1,1}
+The classification decision is based on the sign of 𝑦(x).
+
+The goal is to find a hyperplane that maximizes the margin, which is the distance between the closest points (support vectors) and the decision boundary.
+- If the data is linearly separable, there exists at least one hyperplane that classifies all points correctly
+- To solve this constrained optimization, we introduce Lagrange multipliers Setting the derivatives to zero, Substituting 𝑤 into the Lagrangian gives the dual formulation
+** Lagrange multipliers if decision boundary is linear then you can call g(x) if you subtract it and solve it and multiply it to the lagrange we will have the solutions 
+The final classifier is:𝑦(𝑥)=∑𝛼𝑛𝑡𝑛𝑘(𝑥,𝑥𝑛)+𝑏
+			    𝑛∈𝑆
+
+this means that:
+If 𝛼𝑛>0, then 𝑡𝑛𝑦(𝑥𝑛)=1 (these are support vectors).
+If 𝛼𝑛=0, then 𝑥𝑛 does not affect the decision boundary
+
+7.1.1 Overlapping class distributions
+In real-world cases, classes often overlap.
+we introduce slack variables, ξn >= 0 where
+n = 1, . . . , N, with one slack variable for each training data point 
+These are defined by ξn = 0 for data points that are on or inside the correct margin boundary and ξn = |tn − y(xn)| for other points. Thus a data point that is on the decision boundary y(xn) = 0 will have ξn = 1,
+
+The new optimization problem is: 
+min 1/2∥𝑤∥^2+𝐶∑𝜉𝑛
+𝑤,𝑏
+The C parameter balances:
+Margin size (∥𝑤∥^2)
+Misclassification penalty (∑𝜉𝑛)
+The dual problem remains similar, but now:0≤𝛼𝑛≤𝐶
+Kernel Trick: Instead of explicitly mapping data to high-dimensional feature spaces, SVMs use a kernel function:
+𝑘(𝑥,𝑥′)=𝜙(𝑥)^𝑇𝜙(𝑥′) allowing computations to remain in input space.
+
+7.1.2: Relation to Logistic Regression
+Error Functions in SVM and Logistic Regression
+SVM uses the hinge loss function:
+ESV(yt)=[1−yt]+ 
+where [z] +means max(0, z).
+If yt≥1, no loss is incurred.
+If yt<1, the loss increases linearly.
+Logistic Regression uses the logistic loss function:
+𝐸𝐿𝑅(𝑦𝑡)=ln(1+𝑒^−𝑦𝑡)
+This function is smooth and differentiable.
+Unlike SVM, it gives probabilistic outputs.
+The hinge loss is an approximation of the misclassification error, while logistic loss is a smooth function.
+
+Regularization
+Both methods use regularization to prevent overfitting both typically uses L2 regularization
+
+SVM has no Probabilistic Outputs
+
+7.1.3 Multiclass SVMs
+Since SVMs are naturally binary classifiers, multiclass classification is handled by:
+One-vs-Rest (OvR): Train a separate SVM for each class.
+- using the decisions of the individual classifiers can lead to inconsistent results in which an input is assigned to multiple classes simultaneously.
+- the training setsare imbalanced.
+One-vs-One (OvO): Train an SVM for each pair of classes.
+- Another approach is to train K(K−1)/2 different 2-class SVMs on all possible pairs of classes, and then to classify test points according to which class has the highest
+number of ‘votes’,
+Error-correcting Output Codes: Combine binary classifiers with redundancy.
+- The K classes themselves are represented as particular sets of responses from the two-class classifiers chosen, and together with a suitable decoding scheme, this gives robustness to errors and to ambiguity in the outputs of the individual classifiers.
+
+7.1.4 SVMs for regression
+Standard Regression: This approach does not enforce sparsity, meaning all data points contribute to the prediction.
+
+SVR Solution: Instead of minimizing squared errors, SVR introduces an ε-insensitive loss function, allowing some flexibility in the error
+
+The ε-Insensitive Loss Function
+In SVR, we define a "tube" of width ε around the target values.
+Predictions within this ε-margin incur zero error.
+Only points outside the ε-boundary contribute to the loss.
+This means:
+If the prediction y(x) is within 𝜖 of 𝑡, no penalty is applied.
+If the error exceeds 𝜖, it grows linearly (instead of quadratically like in least squares).
+
+
+The error function for support vector regression can then be written as
+C∑(ξn +ξn) +1/2||w||2
+n=1
+where:
+𝜉𝑛 and 𝜉𝑛 are slack variables for points above and below the tube.
+𝐶 controls the trade-off between margin width and error penalty
+
+An alternative ν-SVR method fixes the fraction of points that lie outside the margin instead of setting ε manually.
+where ν controls:
+The fraction of support vectors.
+The fraction of points violating the ε-boundary.
+
+7.1.5 Computational learning theory
+Historically, support vector machines have largely been motivated and analysed
+using a theoretical framework known as computational learning theory, also sometimes
+called statistical learning theory The goal of the PAC framework is to understand how large a data set needs to be in order to give good generalization. It also gives bounds for the computational cost of learning, although we do not consider these here.
+
+Suppose that a data set D of size N is drawn from some joint distribution p(x, t)
+where x is the input variable and t represents the class label, and that we restrict
+attention to ‘noise free’ situations in which the class labels are determined by some
+(unknown) deterministic function t = g(x). In PAC learning we say that a function
+f (x;D), drawn from a space F of such functions on the basis of the training set
+D, has good generalization if its expected error rate is below some pre-specified
+threshold , so that
+Ex,t [I (f (x;D) != t)] < 𝜖
+
+in other words they strongly over-estimate
+the size of data sets required to achieve a given generalization performance. For this
+reason, PAC bounds have found few, if any, practical applications.
+
+7.2. Relevance Vector Machines
+is a Bayesian sparse kernel technique for regression and classification that shares many of the characteristics of the SVM whilst avoiding its principal limitations. Additionally, it typically leads to much sparser models resulting in correspondingly faster performance on test data whilst maintaining comparable generalization error
+
+7.2.1 RVM for regression
+RVM is based on a linear model similar to standard regression, but with a modified prior distribution that enforces sparsity.
+p(t|x,w, β) = N(t|y(x), β^−1)
+where β = σ−2 is the noise precision (inverse noise variance), and the mean is given by a linear model of the form
+y(x) =∑wiφi(x) = wTφ(x)
+     i=1
+with fixed nonlinear basis functions φi(x), which will typically include a constant term so that the corresponding weight parameter represents a ‘bias’.
+
+Bayesian Framework: Introducing Sparsity
+Key idea: Instead of using a fixed regularization term, RVM places a prior on the weights: 𝑝(𝑤∣𝛼)=∏𝑁(𝑤𝑖∣0,𝛼𝑖^−1)
+Each weight 𝑤𝑖 has an individual precision parameter 𝛼𝑖.
+This automatically prunes irrelevant basis functions (leading to sparsity).
+Many 𝛼𝑖 values go to infinity, forcing corresponding 𝑤𝑖 to be zero
+
+Given the prior and the likelihood function, we compute the posterior distribution for the weights
+The hyperparameters 𝛼 and 𝛽 are learned using Type-II Maximum Likelihood (Evidence Approximation).
+RVM provides uncertainty estimates, making it useful for probabilistic inference.
+
+7.2.2: Analysis of Sparsity in RVM
+The sparsity mechanism in RVM arises due to the Bayesian automatic relevance determination (ARD) framework, which selectively removes basis functions that contribute little to the model.
+
+Why Does Sparsity Occur in RVM?
+In SVMs, sparsity occurs because only support vectors have nonzero weights.
+In RVMs, sparsity is stronger because the Bayesian framework allows automatic pruning of many weights 𝑤𝑖 to zero.
+This happens because each weight 𝑤𝑖 has its own precision parameter 𝛼𝑖 n the prior
+When optimizing 𝛼 using evidence maximization, many 𝛼𝑖 values become very large (→∞), forcing the corresponding weights 𝑤𝑖 to zero.
+
+If a basis function 𝜙𝑖(𝑥) is poorly aligned with 𝑡, then setting 𝛼𝑖 →∞ increases the likelihood of the data.
+This effectively removes that basis function from the model.
+
+7.2.3: RVM for Classification
+RVM extends to classification by replacing the Gaussian likelihood (regression) with a Bernoulli likelihood.
+
+Bayesian Inference for RVM Classification
+Instead of solving directly, we approximate the posterior using Laplace’s approximation.
+
+The posterior distribution for w is approximated by a Gaussian:
+p(w∣t,X,α)≈N(w∣m,Σ)
+where:
+Mean: m=argmax p(w∣t,X,α) (found using optimization).
+Covariance:Σ=(A+Φ^T*RΦ)^−1
+A=diag(α) is the prior precision matrix.
+R is a diagonal matrix with elements: 𝑅𝑛𝑛=𝜎(𝑦𝑛)(1−𝜎(𝑦𝑛))
+This comes from the Hessian of the log-likelihood, ensuring proper variance estimation.
+
+Iterative Re-Estimation of Hyperparameters 
+𝛼 Just like in RVM regression, the hyperparameters αi
+are updated as:𝛼𝑖new=𝛾𝑖/𝑚𝑖^2
+where:𝛾𝑖=1−𝛼𝑖Σ𝑖𝑖
+Effect of α update:
+If 𝛾𝑖 is small → 𝛼𝑖 grows large → 𝑤𝑖 is forced to zero.
+This removes irrelevant basis functions → leads to sparsity.
+
+Making Predictions with RVM Classifier
+After training, the predictive probability for a new input 𝑥 is computed as: 𝑝(𝑡=1∣𝑥,𝑡,𝑋,𝛼)=𝜎(𝑚𝑇𝜙(𝑥))
+This gives a probabilistic output, unlike SVMs, which only provide a hard decision.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

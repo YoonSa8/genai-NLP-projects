@@ -1,0 +1,170 @@
+3.1. Linear Basis Function Models
+- Linear basis function models are extensions of simple linear regression.
+- a linear function of the input variables xi, and this imposes significant limitations on the model. We therefore extend the class of models by considering
+linear combinations of fixed nonlinear functions of the input variables
+- Instead of working directly with the input variables (𝑥1,x2,…), these models transform inputs using functions called basis functions (𝜙𝑗(𝑥)).
+This form remains linear in the parameters , even if basis is nonlinear and the model can capture complex relationships in the data.
+
+Examples of Basis Functions:
+Gaussian:  where μj​ controls the center and s controls the spread.
+Sigmoidal , ploynomial 
+
+3.1.1 Maximum likelihood and least squares
+- it expect that the noise data t is gaussion?
+- Maximizing the log-likelihood with respect to w is equivalent to minimizing the sum-of-squares error function ED(w).
+- The precision parameter 𝛽 (or its inverse, the noise variance) can also be estimated, which is the residual variance of the target values around the model's predictions.
+
+ 3.1.2: Geometry of Least Squares
+The least-squares solution has a natural interpretation in an N-dimensional space, represents the target values as a vector.
+The error minimization process (least-squares) corresponds to finding the projection of 𝑡 onto 𝑆 ensuring that 𝑦 is the closest point to 𝑡 in this subspace.
+The least-squares solution achieves this by making the residual (difference between 𝑡 and 𝑦) orthogonal to 𝑆
+The residuals are the vertical distances from the points to the line. The least-squares solution ensures that these residuals are perpendicular to the line, which geometrically corresponds to finding the closest line to all points.
+
+3.1.3: Sequential Learning
+- Batch Learning: Involves processing the entire dataset at once, which can be computationally expensive for large datasets.
+- Sequential Learning: Processes data one point at a time, updating the model incrementally.
+- Stochastic Gradient Descent (SGD)
+The sequential learning method is based on stochastic gradient descent (SGD), which minimizes the error function by updating the parameter vector 𝑤 iteratively for subset of data:
+
+3.1.4: Regularized Least Squares
+adding a regularization term to an error function in order to control over-fitting
+- known in the machine learning literature as weight decay because in sequential learning algorithms, it encourages weight values to decay towards zero, unless supported by the data.
+- Alternative Regularization Terms: More general forms, such as 
+M
+∑
+𝑗=1 ∣𝑤𝑗∣𝑞,
+can be used for regularization.
+For q=1, the method is called lasso, which promotes sparsity by driving some weights to zero.
+
+
+3.1.5: Multiple Outputs
+In some applications, instead of predicting a single target variable 𝑡, you might need to predict multiple outputs simultaneously. These target variables are represented as a vector 𝑡 with 𝐾>1 components.
+- y(x,w)=WTϕ(x),where:
+𝑦(𝑥,𝑤) is a 𝐾-dimensional output vector. 
+𝑊 is an 𝑀×𝐾 parameter matrix. 
+𝜙(𝑥) is an 𝑀-dimensional vector of basis functions.
+
+ 3.2: The Bias-Variance Decomposition
+Expected Squared Loss: The goal is to minimize the expected squared loss between predictions 𝑦(𝑥) and the true regression function ℎ(𝑥)  first term measures the accuracy of predictions, while the second term represents the intrinsic noise in the data.
+- The squared loss is broken into three components: Expected Loss=(Bias)2+Variance+Noise.
+Bias: Measures how far the average prediction is from the true function ℎ(𝑥).
+Variance: Reflects the sensitivity of the model to different training data sets.
+Noise: Represents the irreducible error due to randomness in the data.
+- There is a trade-off between bias and variance:
+Flexible models (e.g., high-degree polynomials) have low bias but high variance.
+Rigid models (e.g., simple linear functions) have high bias but low variance.
+The optimal model balances bias and variance to minimize total error.
+
+3.3. Bayesian Linear Regression
+- Adding a regularization term to the log likelihood function means the effective model complexity can then be controlled by the value of the regularization coefficient,
+
+- We turn to a Bayesian treatment of linear regression, which will avoid the over-fitting problem of maximum likelihood, and which will also lead to automatic methods of determining model complexity using the training data alone.
+
+
+3.3.1 Parameter distribution
+-  Bayesian methods, which provide a principled way to incorporate prior knowledge and handle uncertainty in parameter estimates
+noise precision parameter β as a known constant.
+- In Bayesian linear regression, the parameters 𝑤 of the model are treated as random variables.
+- A prior distribution is assigned to 𝑤, reflecting our initial belief about its values before observing any data.
+- A Gaussian prior is commonly used: 𝑝(𝑤)=𝑁(𝑤∣𝑚0,𝑆0),
+where 𝑚0 is the prior mean and 𝑆0 is the prior covariance matrix.
+-  prior is updated to a posterior distribution using Bayes' theorem: p(w∣t)∝p(t∣w)p(w),
+where  p(t∣w) is the likelihood of the data given w.
+The posterior distribution is also Gaussian due to the conjugate properties of Gaussian priors and likelihoods
+- The posterior mean 𝑚𝑁 and covariance 𝑆𝑁 are computed as where Φ is the design matrix, 𝑡 is the vector of observed targets, and 𝛽 is the noise precision.
+Special Cases:
+- If the prior is broad (S0−1→0), the posterior mean reduces to the maximum likelihood solution.
+- When no data is available (N=0), the posterior reverts to the prior.
+- Sequential Updates: Bayesian learning allows for sequential updates: the posterior after observing one dataset serves as the prior for the next dataset.
+
+3.3.2: Predictive Distribution
+- The main goal is to predict the target value 𝑡 for a new input 𝑥, using the Bayesian framework. This involves marginalizing over the posterior distribution of the model parameters.
+- he predictive distribution is given by: 
+	integrating Likelihood of the target variable given the model parameters. with Posterior distribution of the parameters.
+	Because both the likelihood and posterior are Gaussian, the predictive distribution is also Gaussian:
+	As more data points are observed, the posterior becomes more confident (narrower), and the second term in the variance diminishes.
+	In the limit of infinite data, the uncertainty arises solely from the noise.
+	the model's predictive uncertainty is higher in regions with fewer data points and reduces as more data is observed. 
+
+3.3.3: Equivalent Kernel?
+The equivalent kernel provides an interpretation of Bayesian linear regression in terms of kernel methods.
+It describes how predictions are formed as a weighted combination of the training data's target values.
+
+3.4: Bayesian Model Comparison
+Bayesian model comparison, which evaluates models using probabilities, providing a principled way to select among competing models based on observed data. Key points are:
+Posterior Model Probability
+1- The posterior probability of a model 𝑀𝑖 given data 𝐷 is:
+	p(Mi): Prior probability, representing initial preference for the model. 
+	𝑝(𝐷∣𝑀𝑖): Model evidence or marginal likelihood, measures how well the model explains the data.
+
+2- Model Evidence
+The model evidence 𝑝(𝐷∣𝑀𝑖) is computed by marginalizing over the model parameters 𝑤:
+This integral balances:
+	Fit to the data: How well the model matches the observations.
+	Complexity penalty: Penalizes overly complex models to avoid overfitting.
+
+3. Bayes Factor
+The ratio of evidences for two models is called the Bayes factor It quantifies the relative evidence for two models based on the observed data.
+
+4. Model Averaging
+Rather than selecting a single model, predictions can be made by averaging over all models, weighted by their posterior probabilities
+
+5- Model Complexity Trade-off
+Simple models may underfit, providing poor data fit.
+Complex models may overfit, spreading probability across many data sets and penalizing evidence.
+The optimal model balances complexity and fit.
+
+6-  General Insights
+Bayesian model comparison avoids overfitting by incorporating a complexity penalty.
+Predictions and model evaluations are based on the training data, eliminating the need for a separate validation set.
+The method is sensitive to prior choices and assumptions.
+
+
+
+3.6: Limitations of Fixed Basis Functions
+1. Dependency on Basis Functions Linear models rely on a fixed set of basis functions which transform the input 𝑥 into a new representation: Key limitations arise due to the choice and properties of these basis functions.
+
+2. Limitations
+
+Model Complexity:
+The complexity of the model is determined by the number of basis functions 𝑀 A small 𝑀 may lead to underfitting, while a large 𝑀 may result in overfitting or numerical instability.
+
+Choice of Basis Functions:
+The performance of the model depends critically on the type of basis functions used (e.g., polynomials, Gaussians, sigmoids).
+Poorly chosen basis functions may fail to capture important data features.
+
+Fixed Nature:
+Fixed basis functions do not adapt to the data, which can limit their flexibility and effectiveness, especially for complex datasets.
+
+Scalability:
+In high-dimensional input spaces, the number of basis functions required grows rapidly, leading to computational challenges (the curse of dimensionality).
+
+Extrapolation Issues:
+Fixed basis functions, such as localized Gaussians, may generalize poorly outside the region covered by the data, resulting in overconfidence in predictions in unobserved regions.
+
+Feature Engineering Dependency:
+Fixed basis function models often require extensive pre-processing or feature engineering to construct effective basis functions tailored to the problem.
+
+3.1.3: Sequential Learning
+Sequential learning, based on stochastic gradient descent, updates model parameters incrementally with each data point, making it efficient for large datasets and real-time applications. While it offers adaptability and reduced computational demands, careful tuning of the learning rate is essential for stability and convergence.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

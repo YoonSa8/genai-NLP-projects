@@ -1,0 +1,178 @@
+6.1: Dual Representations
+In dual representations, we express linear regression and classification models in terms of kernel functions rather than explicit feature mappings. This allows us to compute solutions in high-dimensional spaces efficiently. Instead of working directly with parameters w, we reformulate the problem using a Gram matrix (K), which consists of kernel function evaluations between training points.
+
+a linear regression model where the parameters w are determined by minimizing a regularized sum-of-squares error function:
+         N
+J(w)= 1/2∑(wTϕ(xn)−tn)^2+λ/2 wTw
+
+Here, λ is a regularization parameter that prevents overfitting, and Φ(x) is the feature mapping.
+By setting the gradient ∇J(w) = 0, the optimal w can be expressed as a linear combination of the basis functions:
+𝑤=∑𝑎𝑛*𝜙(𝑥𝑛)
+  𝑛=1
+This representation shifts the focus from w to the new coefficient vector a, leading to a dual formulation of the problem.
+
+By defining the Gram matrix 𝐾 We can express the least-squares solution entirely in terms of the kernel function
+
+Setting the gradient ∇J(a) = 0, we obtain The prediction for a new input x
+
+
+6.2. Constructing Kernels
+Since the kernel function k(x, x') is central to dual representations, we need a systematic way to construct valid kernels. The kernel must satisfy certain mathematical properties to ensure it represents an inner product in some feature space.
+
+Ways to Construct Kernels
+-Feature Space Mapping Approach
+Define an explicit feature transformation φ(x) and compute the kernel 
+- Direct Kernel Construction
+Instead of defining φ(x) explicitly, we construct k(x, x') directly.
+A valid kernel must ensure that the Gram matrix K is positive semi-definite for all training sets.
+- Common Kernel Functions
+Linear Kernel:Eqvalent to a simple dot product in input space.
+
+Polynomial Kernel (Degree M):Captures interactions of features up to degree M.
+
+Rial Basis Function (RBF) or Gaussian Kernel: easures similarity based on Euclidean distance, allowing infinite-dimensional feature mappings.
+
+Sigmoid Kernel: inspired by neural networks but not always valid.
+
+-Building New Kernels from Existing Ones
+If k1(x, x') and k2(x, x') are valid kernels, then the following operations also produce valid kernels:
+Scaling, Addition,Multiplication, Exponentiation
+
+summary of 6.1,6.2 
+-Dual representations reformulate models using kernel functions, allowing efficient computations in high-dimensional spaces.
+-Valid kernel functions must ensure the Gram matrix (K) is positive semi-definite.
+-Kernel engineering techniques help adapt models to different types of data without explicitly computing feature mappings
+
+6.3. Radial Basis Function (RBF) Networks
+RBF networks are neural network models that use radial basis functions as their activation functions. Unlike standard multi-layer perceptrons (MLPs), which use sigmoidal or ReLU activations, RBF networks rely on localized, distance-based activations centered around key data points.
+
+- The model consists of a weighted sum of radial basis functions, where each function depends only on the Euclidean distance between an input and a center:
+     M
+y(x)=∑​wh(∥x−μj∥)
+    j=1
+μj are the centers of the basis functions.
+h(∥x−μj∥) is typically a Gaussian function: h(∥x−μj∥)=exp((− ∥x−μj∥ ^2)/2𝜎62)
+
+-Originally developed for exact interpolation, meaning they fit data exactly. However, this is not ideal in noisy scenarios, so modern versions include regularization.
+RBF networks are closely related to kernel methods, particularly the Gaussian kernel, which we saw in Section 6.2.
+
+- The centers 𝜇𝑗 can be chosen from:
+Training data points (one per point) → computationally expensive.
+Clustering methods like K-means → computationally efficient.
+Orthogonal least squares (OLS) → selects the most influential data points iteratively.
+
+- Training is fast, but predictions can be slow because each test point involves evaluating all basis functions.
+
+6.3.1 Nadaraya-Watson Model
+The Nadaraya-Watson model provides a probabilistic interpretation of kernel-based regression. Instead of explicitly solving for parameters, it estimates the function directly using weighted averages of training data.
+
+-The model predicts the output for a new input x as a weighted sum of training labels
+- The kernel function k(x, x_n) determines the weight of each training point.
+- The weights sum to 1, ensuring smooth estimates, typical choice for g(x) is a Gaussian function, similar to the RBF network’s basis functions.
+
+Gaussian Processes (GPs) in Section 6.4, which unify kernel-based regression under a Bayesian framework. GPs take kernel regression a step further by not just estimating a function but also modeling uncertainty in predictions.
+
+6.4. Gaussian Processes: A Probabilistic View of Kernel Methods
+From Kernel Regression to Gaussian Processes
+Kernel regression (6.3.1) assumes a fixed function estimate, but it does not provide a confidence measure for predictions.
+Gaussian Processes (GPs) extend this by treating functions as random variables, where predictions come with uncertainty quantification.
+Instead of estimating a single function, a GP defines a probability distribution over all possible functions that fit the training data
+
+6.4.1 Linear Regression Revisited: The Link to Gaussian Processes
+To understand GPs, we revisit linear regression but from a probabilistic perspective:
+Linear regression model:y(x)=wTϕ(x)
+Previously, we estimated w using least squares.
+Instead, we now place a prior on w, making it a random variable.
+If w follows a Gaussian prior, then y(x) follows a Gaussian distribution: p(y)=N(y∣0,K)
+The covariance matrix K is computed using a kernel function k(x,x′).
+This transforms our view of regression:
+Instead of optimizing w, we infer the distribution over functions using GPs.
+
+6.4.2 Gaussian Processes for Regression
+Key Differences from Kernel Regression
+Kernel regression provides only point estimates, whereas GPs provide full distributions with mean and variance.
+GP predictions have uncertainty quantification, which is useful in real-world applications like Bayesian optimization, active learning, and reinforcement learning.
+For a new test point 𝑥∗,the GP predictive distribution is:𝑝(𝑦∗∣𝑋,𝑦,𝑥∗)=𝑁(𝜇(𝑥∗),𝜎^2(𝑥∗))
+where:
+𝜇(𝑥∗) is the mean prediction.
+𝜎^2(𝑥∗) is the uncertainty (variance) of the prediction.
+
+6.4.3 Learning the Hyperparameters of Gaussian Processes
+GPs rely on a kernel function k(x,x′) with hyperparameters that control function behavior (e.g., smoothness).
+
+To find optimal hyperparameters, we maximize the marginal likelihood
+where
+First term: How well the data fits the model.
+Second term: Complexity penalty (model regularization).
+Gradient-based methods (e.g., conjugate gradient, L-BFGS) optimize the kernel hyperparameters.
+
+6.4.4 Automatic Relevance Determination (ARD)
+GPs can automatically identify which input dimensions are important via ARD.
+
+We assign different length scales ℓ𝑖 to each input dimension:
+If ℓ𝑖 is large, the function varies slowly with respect to 𝑥𝑖, meaning 𝑥𝑖 is not important.
+If ℓ𝑖 is small,𝑥𝑖 strongly influences predictions.
+This prunes irrelevant dimensions automatically in high-dimensional problems.
+
+6.4.5 Gaussian Processes for Classification
+Unlike regression, classification outputs discrete labels instead of continuous values.
+GP classification transforms the GP output using a sigmoid function: p(y=1∣x)=σ(f(x))
+where f(x) is a Gaussian Process.
+Since the sigmoid function makes the likelihood non-Gaussian, exact inference is intractable.
+Thus, we use approximations:
+Laplace Approximation
+Expectation Propagation (EP)
+Variational Inference
+
+6.4.6 Laplace Approximation for GP Classification
+The Laplace Approximation is one way to approximate the non-Gaussian posterior:
+Find the mode of the posterior p(f∣X,y).
+Approximate the posterior using a Gaussian centered at the mode.
+Use this Gaussian to compute predictions.
+Although simple, it can be inaccurate in complex classification tasks. Expectation Propagation (EP) is often preferred.
+
+6.4.7 Connections Between Gaussian Processes and Other Models
+GPs are closely linked to other machine learning models:
+
+-Kernel Ridge Regression	GPs reduce to ridge regression in the limit of zero noise variance.
+- Bayesian Linear Regression GPs are a generalization of Bayesian linear regression.
+- Neural Networks	An infinite-width neural network converges to a GP.
+- Support Vector Machines (SVMs)	GPs and SVMs both use kernel functions, but SVMs maximize a margin, while GPs model a distribution over functions.
+
+The connection to infinite neural networks is particularly exciting—modern research shows that deep GPs can act as Bayesian deep learning models.
+
+
+final Connections: From Dual Representations to Gaussian Processes
+Dual Representations (6.1) → Kernel Methods (6.2)
+
+Duality allows us to reformulate machine learning models using kernels.
+Kernel Methods (6.2) → Radial Basis Function Networks (6.3)
+
+RBF networks are a neural network equivalent of kernel-based learning.
+RBF Networks (6.3) → Kernel Regression (6.3.1)
+
+Nadaraya-Watson kernel regression provides a probabilistic foundation.
+Kernel Regression (6.3.1) → Gaussian Processes (6.4)
+
+GPs extend kernel regression by modeling distributions over functions.
+GP Regression (6.4.2) → GP Classification (6.4.5)
+
+By using sigmoid or softmax functions, GPs can be adapted for classification.
+GPs (6.4.7) → Infinite Neural Networks
+
+A deep GP is equivalent to an infinite-width neural network.
+Key Takeaways
+Gaussian Processes unify kernel-based learning in a Bayesian framework.
+They predict not just function values but also uncertainty.
+Hyperparameters can be learned using marginal likelihood optimization.
+GPs generalize many classical ML methods, including neural networks.
+
+
+
+
+
+
+
+
+
+
